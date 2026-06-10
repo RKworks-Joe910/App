@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工程進捗管理</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Meiryo", "Yu Gothic", sans-serif; background: #f0f4f8; color: #1a1a2e; }
+  
+  header { background: linear-gradient(135deg, #1F4E79, #2E75B6); color: white; padding: 16px 24px;
+            display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  header h1 { font-size: 20px; letter-spacing: 1px; }
+  
+  .summary { display: flex; gap: 16px; padding: 16px 24px; flex-wrap: wrap; }
+  .summary-card { background: white; border-radius: 10px; padding: 14px 20px; min-width: 140px;
+                   box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center; border-top: 4px solid #ccc; }
+  .summary-card.total { border-color: #2E75B6; }
+  .summary-card.done { border-color: #70AD47; }
+  .summary-card.inprog { border-color: #2E75B6; }
+  .summary-card.notyet { border-color: #FFD966; }
+  .summary-card .num { font-size: 28px; font-weight: bold; }
+  .summary-card .label { font-size: 12px; color: #666; margin-top: 2px; }
+  
+  .controls { padding: 8px 24px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .filter-btn { padding: 6px 14px; border: 2px solid #ccc; border-radius: 20px; cursor: pointer;
+                 background: white; font-size: 13px; transition: all 0.2s; }
+  .filter-btn.active { background: #1F4E79; color: white; border-color: #1F4E79; }
+  .filter-btn:hover { border-color: #2E75B6; }
+  
+  .table-wrap { padding: 0 24px 32px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: white;
+           border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  thead { background: #1F4E79; color: white; position: sticky; top: 0; z-index: 10; }
+  thead th { padding: 10px 8px; font-size: 12px; text-align: center; white-space: nowrap; }
+  thead th.step-h { background: #2E75B6; }
+  
+  tbody tr:nth-child(even) { background: #f7f9ff; }
+  tbody tr:hover { background: #e8f0fe; }
+  
+  td { padding: 8px; font-size: 12px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
+  td.zumen { font-weight: bold; color: #1F4E79; white-space: nowrap; }
+  td.hinmei { font-weight: 500; }
+  td.step-name { background: #EBF3FB; max-width: 200px; line-height: 1.4; }
+  td.step-name.empty { background: #f5f5f5; color: #bbb; text-align: center; }
+  
+  select.status-sel { width: 82px; padding: 4px 2px; border-radius: 6px; border: none;
+                       font-size: 11px; font-weight: bold; cursor: pointer; text-align: center;
+                       outline: none; transition: all 0.2s; }
+  select.done    { background: #70AD47; color: white; }
+  select.inprog  { background: #2E75B6; color: white; }
+  select.notyet  { background: #FFD966; color: #7F6000; }
+  select.empty   { background: #e0e0e0; color: #aaa; }
+  
+  td.zansu { text-align: center; font-size: 16px; font-weight: bold; }
+  td.zansu.zero { color: #70AD47; }
+  td.zansu.nonzero { color: #FF6B6B; }
+  
+  .progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #70AD47, #A9D18E); border-radius: 3px; transition: width 0.4s; }
+  
+  .save-btn { padding: 8px 20px; background: #1F4E79; color: white; border: none; border-radius: 6px;
+               cursor: pointer; font-size: 13px; }
+  .save-btn:hover { background: #2E75B6; }
+  
+  .hidden { display: none; }
+  
+  .legend { display: flex; gap: 12px; padding: 8px 24px; font-size: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 14px; height: 14px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚙ 工程進捗管理</h1>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <span id="last-saved" style="font-size:12px;opacity:0.8;"></span>
+    <button class="save-btn" onclick="saveData()">💾 保存</button>
+  </div>
+</header>
+
+<div class="summary">
+  <div class="summary-card total"><div class="num" id="s-total">-</div><div class="label">総品番数</div></div>
+  <div class="summary-card done"><div class="num" id="s-done">-</div><div class="label">全工程完了</div></div>
+  <div class="summary-card inprog"><div class="num" id="s-inprog">-</div><div class="label">作業中あり</div></div>
+  <div class="summary-card notyet"><div class="num" id="s-notyet">-</div><div class="label">未着手</div></div>
+</div>
+
+<div class="controls">
+  <span style="font-size:13px;color:#555;font-weight:bold;">絞り込み:</span>
+  <button class="filter-btn active" onclick="setFilter('all', this)">すべて</button>
+  <button class="filter-btn" onclick="setFilter('notyet', this)">注残あり</button>
+  <button class="filter-btn" onclick="setFilter('done', this)">完了済み</button>
+  <button class="filter-btn" onclick="setFilter('inprog', this)">作業中</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#70AD47"></div>完了</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2E75B6"></div>作業中</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#FFD966"></div>未着手</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0"></div>該当工程なし</div>
+</div>
+
+<div class="table-wrap">
+<table id="main-table">
+<thead>
+<tr>
+  <th rowspan="2">図番</th>
+  <th rowspan="2">品名</th>
+  <th class="step-h" colspan="2">工程 1</th>
+  <th class="step-h" colspan="2">工程 2</th>
+  <th class="step-h" colspan="2">工程 3</th>
+  <th class="step-h" colspan="2">工程 4</th>
+  <th rowspan="2">注残<br>工程数</th>
+</tr>
+<tr>
+  <th class="step-h">工程名</th><th class="step-h">状態</th>
+  <th class="step-h">工程名</th><th class="step-h">状態</th>
+  <th class="step-h">工程名</th><th class="step-h">状態</th>
+  <th class="step-h">工程名</th><th class="step-h">状態</th>
+</tr>
+</thead>
+<tbody id="tbody">
+</tbody>
+</table>
+</div>
+
+<script>
+const MAX_STEPS = 4;
+const rawData = [{"zumen": "RGH3-A002-00", "hinmei": "取付板", "kouteibun": "関根製作所（全加工）→さくらＧＳ", "steps": ["関根製作所（全加工）", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-B001-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞｱｰﾑ組立", "kouteibun": "ＲＧＨ3-007ｽﾌﾟﾘﾝｸﾞｱ‐ﾑ板（関根製作所全加工）→社内ボール盤→さくらＧＳ", "steps": ["ＲＧＨ3-007ｽﾌﾟﾘﾝｸﾞｱ‐ﾑ板（関根製作所全加工）", "社内ボール盤", "さくらＧＳ"], "status": ["未着手", "未着手", "未着手"]}, {"zumen": "RGH3-006", "hinmei": "ｱｰﾑ軸受", "kouteibun": "SS磨　Φ25X500L   社内旋盤加工→関根製作所支給　(RGH3-B003-00共通部品）", "steps": ["SS磨 Φ25X500L   社内旋盤加工", "関根製作所支給 (RGH3-B003-00共通部品）"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A008-00", "hinmei": "ｱ－ﾑ軸", "kouteibun": "SSﾐｶﾞｷ　Φ25Ｘ79Ｌ　製作数購入　   社内旋盤→さくらＧＳ", "steps": ["SSﾐｶﾞｷ Φ25Ｘ79Ｌ 製作数購入    社内旋盤", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A011-00", "hinmei": "中間コロ", "kouteibun": "合成素材（全加工）", "steps": ["合成素材（全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A012-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞ用ﾎﾞﾙﾄ", "kouteibun": "IKE(全加工）→さくらＧＳ", "steps": ["IKE(全加工）", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A013-00", "hinmei": "後部ｽﾌﾟﾘﾝｸﾞ保持器", "kouteibun": "A5056　Φ35Ｘ120L  購入　　社内旋盤", "steps": ["A5056 Φ35Ｘ120L  購入  社内旋盤"], "status": ["未着手"]}, {"zumen": "RGH3-A014-00", "hinmei": "前部ｽﾌﾟﾘﾝｸﾞ保持器", "kouteibun": "合成素材（全加工）", "steps": ["合成素材（全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A015-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞ支持台", "kouteibun": "三和ステンレス（全加工）→さくらＧＳ", "steps": ["三和ステンレス（全加工）", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A016-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞ中間軸", "kouteibun": "ヨシザワ（全加工）→さくらＧＳ", "steps": ["ヨシザワ（全加工）", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A017-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞ中間軸受け", "kouteibun": "アイナ（全加工）→さくらＧＳ", "steps": ["アイナ（全加工）", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A019-01", "hinmei": "ﾀﾞﾝﾊﾟ-先端金具", "kouteibun": "三和ステンレス（全加工）→さくらＧＳ", "steps": ["三和ステンレス（全加工）", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A020-00", "hinmei": "中間コロ軸", "kouteibun": "IKE(全加工）→さくらＧＳ", "steps": ["IKE(全加工）", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A023-01", "hinmei": "ﾗﾁｪｯﾄ爪", "kouteibun": "三和ステンレス（全加工）→社内ﾎﾞ‐ﾙ盤（Φ17ﾘ‐ﾏ）→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["三和ステンレス（全加工）", "社内ﾎﾞ‐ﾙ盤（Φ17ﾘ‐ﾏ）", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"], "status": ["未着手", "未着手", "未着手", "未着手"]}, {"zumen": "RGH3-A025-00", "hinmei": "ﾗﾁｪｯﾄ爪支柱", "kouteibun": "SSﾐｶﾞｷΦ25Ｘ300Ｌ　１本購入　社内旋盤→さくらＧＳ", "steps": ["SSﾐｶﾞｷΦ25Ｘ300Ｌ １本購入 社内旋盤", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A026-00", "hinmei": "ﾗﾁｪｯﾄ爪保持ﾌﾞｯｼｭ", "kouteibun": "合成素材（全加工）", "steps": ["合成素材（全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A103-01", "hinmei": "ｿﾚﾉｲﾄﾞ台", "kouteibun": "アイナ（全加工）→さくらＧＳ", "steps": ["アイナ（全加工）", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A100-02", "hinmei": "ｿﾚﾉｲﾄﾞｶﾞｲﾄﾞ", "kouteibun": "三和ステンレス（全加工）→精光電装（アルマイト）", "steps": ["三和ステンレス（全加工）", "精光電装（アルマイト）"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A104-03", "hinmei": "ｿﾚﾉｲﾄﾞﾛｯｸ金具", "kouteibun": "アイナ（全加工）→松本研磨（バフ）", "steps": ["アイナ（全加工）", "松本研磨（バフ）"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A102-00", "hinmei": "連結金具", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A049-01", "hinmei": "ﾍﾞｱﾘﾝｸﾞ保持器", "kouteibun": "ＳＳ黒皮Φ150Ｘ35Ｌ　製作数購入　茨城工場→さくらＧＳ", "steps": ["ＳＳ黒皮Φ150Ｘ35Ｌ 製作数購入 茨城工場", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A050-00", "hinmei": "ｽﾍﾟ-ｻ-", "kouteibun": "真鍮Ｃ3604Φ100Ｘ25Ｌ　製作数購入　社内旋盤", "steps": ["真鍮Ｃ3604Φ100Ｘ25Ｌ 製作数購入 社内旋盤"], "status": ["未着手"]}, {"zumen": "RGH3-A101-02", "hinmei": "ｶﾞｲﾄﾞ棒", "kouteibun": "IKE(全加工）", "steps": ["IKE(全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A003-04", "hinmei": "１２０度台盤", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A005-01", "hinmei": "１２０度ｶﾑ", "kouteibun": "SCM４１５黒皮　Φ115Ｘ18Ｌ　製作数購入　茨城工場→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["SCM４１５黒皮 Φ115Ｘ18Ｌ 製作数購入 茨城工場", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"], "status": ["未着手", "未着手", "未着手"]}, {"zumen": "RGH3-B003-00", "hinmei": "ﾀﾞﾝﾊﾟ-ｱｰﾑ組立", "kouteibun": "RGH3-042　ダンパーアーム板（関根製作所全加工）→", "steps": ["RGH3-042 ダンパーアーム板（関根製作所全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A031-01", "hinmei": "120度用回転軸", "kouteibun": "Ｓ45Ｃ　Φ150Ｘ75　製作数購入　ｱｽﾞﾏ（焼きなまし）→茨城工場→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["Ｓ45Ｃ Φ150Ｘ75 製作数購入 ｱｽﾞﾏ（焼きなまし）", "茨城工場", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"], "status": ["未着手", "未着手", "未着手", "未着手"]}, {"zumen": "RGH3-A032-01", "hinmei": "120度用ﾏｸﾞﾈｯﾄ取付板", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A043-00", "hinmei": "120度用ﾀﾞﾝﾊﾟ-取付台", "kouteibun": "ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」　→さくらＧＳ", "steps": ["ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」", "さくらＧＳ"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A033-00", "hinmei": "下部軸受", "kouteibun": "SUS304 PL Φ55Ｘ18Ｌ　　製作数購入　　茨城工場", "steps": ["SUS304 PL Φ55Ｘ18Ｌ  製作数購入  茨城工場"], "status": ["未着手"]}, {"zumen": "RGH3-A034-02", "hinmei": "回転ﾊﾞ-上部軸", "kouteibun": "SUS304 PL HOT四角42Ｘ42Ｘ205Ｌ　製作数購入　　アイナ（加工）→松本研磨", "steps": ["SUS304 PL HOT四角42Ｘ42Ｘ205Ｌ 製作数購入  アイナ（加工）", "松本研磨"], "status": ["未着手", "未着手"]}, {"zumen": "RGH3-A035-01", "hinmei": "回転ﾊﾞ-下部軸", "kouteibun": "SUS304 PL Φ95Ｘ28Ｌ　　製作数購入　　　茨城工場", "steps": ["SUS304 PL Φ95Ｘ28Ｌ  製作数購入   茨城工場"], "status": ["未着手"]}, {"zumen": "RGH3-A105-01", "hinmei": "回転ﾊﾞ-上部軸受", "kouteibun": "SUS304 PL Φ55Ｘ35Ｌ　　製作数購入　　　茨城工場", "steps": ["SUS304 PL Φ55Ｘ35Ｌ  製作数購入   茨城工場"], "status": ["未着手"]}, {"zumen": "RGH3-A027-03", "hinmei": "90度台盤", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A004-00", "hinmei": "90度ｶﾑ", "kouteibun": "SCM４１５黒皮　Φ115Ｘ18Ｌ　製作数購入　茨城工場→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["SCM４１５黒皮 Φ115Ｘ18Ｌ 製作数購入 茨城工場", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"], "status": ["未着手", "未着手", "未着手"]}, {"zumen": "RGH3-B002-00", "hinmei": "ﾀﾞﾝﾊﾟ-ｱｰﾑ組立", "kouteibun": "RGH3-006ア－ム軸受　RGH3-A010-00　ダンパーアーム板（関根製作所全加工）→", "steps": ["RGH3-006ア－ム軸受 RGH3-A010-00 ダンパーアーム板（関根製作所全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A018-02", "hinmei": "90度用回転軸", "kouteibun": "Ｓ45Ｃ　Φ150Ｘ75　製作数購入　ｱｽﾞﾏ（焼きなまし）→茨城工場→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["Ｓ45Ｃ Φ150Ｘ75 製作数購入 ｱｽﾞﾏ（焼きなまし）", "茨城工場", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"], "status": ["未着手", "未着手", "未着手", "未着手"]}, {"zumen": "RGH3-A024-01", "hinmei": "90度用ﾏｸﾞﾈｯﾄ取付板", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"], "status": ["未着手"]}, {"zumen": "RGH3-A030-00", "hinmei": "90度用ﾀﾞﾝﾊﾟ-取付台", "kouteibun": "ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」　→さくらＧＳ", "steps": ["ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」", "さくらＧＳ"], "status": ["未着手", "未着手"]}];
+
+// ローカルストレージから状態ロード
+function loadState() {
+  try {
+    const saved = localStorage.getItem('kouteiStatus');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return null;
+}
+
+function saveData() {
+  const state = {};
+  rawData.forEach(p => {
+    state[p.zumen] = [];
+    p.steps.forEach((_, si) => {
+      const sel = document.getElementById(`sel_${p.zumen}_${si}`);
+      if (sel) state[p.zumen].push(sel.value);
+    });
+  });
+  localStorage.setItem('kouteiStatus', JSON.stringify(state));
+  const now = new Date();
+  document.getElementById('last-saved').textContent = `保存済 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+function getStatusClass(v) {
+  if (v === '完了') return 'done';
+  if (v === '作業中') return 'inprog';
+  if (v === '-') return 'empty';
+  return 'notyet';
+}
+
+function buildTable() {
+  const savedState = loadState();
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  
+  rawData.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.dataset.zumen = p.zumen;
+    
+    // 状態復元
+    const statuses = [];
+    p.steps.forEach((step, si) => {
+      let val = '未着手';
+      if (savedState && savedState[p.zumen] && savedState[p.zumen][si]) {
+        val = savedState[p.zumen][si];
+      }
+      statuses.push(val);
+    });
+    
+    let html = `<td class="zumen">${p.zumen}</td><td class="hinmei">${p.hinmei}</td>`;
+    
+    for (let si = 0; si < MAX_STEPS; si++) {
+      if (si < p.steps.length) {
+        const val = statuses[si];
+        const cls = getStatusClass(val);
+        html += `<td class="step-name">${p.steps[si]}</td>
+                 <td><select class="status-sel ${cls}" id="sel_${p.zumen}_${si}"
+                     onchange="onStatusChange('${p.zumen}', ${si}, this)">
+                   <option ${val==='未着手'?'selected':''}>未着手</option>
+                   <option ${val==='作業中'?'selected':''}>作業中</option>
+                   <option ${val==='完了'?'selected':''}>完了</option>
+                 </select></td>`;
+      } else {
+        html += `<td class="step-name empty">-</td><td><select class="status-sel empty" disabled><option>-</option></select></td>`;
+      }
+    }
+    
+    const zansu = statuses.filter(v => v !== '完了').length;
+    const zancls = zansu === 0 ? 'zero' : 'nonzero';
+    const pct = Math.round((p.steps.length - zansu) / p.steps.length * 100);
+    html += `<td class="zansu ${zancls}" id="zan_${p.zumen}">
+               ${zansu}<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+             </td>`;
+    
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+  
+  updateSummary();
+}
+
+function onStatusChange(zumen, si, sel) {
+  sel.className = `status-sel ${getStatusClass(sel.value)}`;
+  
+  // 注残数更新
+  const p = rawData.find(x => x.zumen === zumen);
+  let zansu = 0;
+  p.steps.forEach((_, i) => {
+    const s = document.getElementById(`sel_${zumen}_${i}`);
+    if (s && s.value !== '完了') zansu++;
+  });
+  const zanCell = document.getElementById(`zan_${zumen}`);
+  const pct = Math.round((p.steps.length - zansu) / p.steps.length * 100);
+  zanCell.className = `zansu ${zansu === 0 ? 'zero' : 'nonzero'}`;
+  zanCell.innerHTML = `${zansu}<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>`;
+  
+  updateSummary();
+  saveData();
+}
+
+function updateSummary() {
+  let total = rawData.length, done = 0, inprog = 0, notyet = 0;
+  rawData.forEach(p => {
+    const statuses = p.steps.map((_, si) => {
+      const sel = document.getElementById(`sel_${p.zumen}_${si}`);
+      return sel ? sel.value : '未着手';
+    });
+    if (statuses.every(v => v === '完了')) done++;
+    else if (statuses.some(v => v === '作業中')) inprog++;
+    else notyet++;
+  });
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-inprog').textContent = inprog;
+  document.getElementById('s-notyet').textContent = notyet;
+}
+
+let currentFilter = 'all';
+function setFilter(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  document.querySelectorAll('#tbody tr').forEach(tr => {
+    const zumen = tr.dataset.zumen;
+    const p = rawData.find(x => x.zumen === zumen);
+    if (!p) return;
+    
+    const statuses = p.steps.map((_, si) => {
+      const sel = document.getElementById(`sel_${zumen}_${si}`);
+      return sel ? sel.value : '未着手';
+    });
+    
+    let show = false;
+    if (type === 'all') show = true;
+    else if (type === 'done') show = statuses.every(v => v === '完了');
+    else if (type === 'notyet') show = !statuses.every(v => v === '完了');
+    else if (type === 'inprog') show = statuses.some(v => v === '作業中');
+    
+    tr.classList.toggle('hidden', !show);
+  });
+}
+
+buildTable();
+</script>
+</body>
+</html>
