@@ -172,7 +172,7 @@ select.st-notyet{background:#FFD966;color:#7F6000}
     </div>
     <div class="tbl-wrap">
     <table>
-      <thead><tr><th>受注No.</th><th>客先</th><th>受注日</th><th>目標納期</th><th>残り</th><th>品番/品名</th><th>数量</th><th>全体進捗</th><th>ステータス</th><th>操作</th></tr></thead>
+      <thead><tr><th>受注No.</th><th>案件名</th><th>客先</th><th>受注日</th><th>目標納期</th><th>残り</th><th>図番 / 品名</th><th>数量</th><th>全体進捗</th><th>ステータス</th><th>操作</th></tr></thead>
       <tbody id="orders-tbody"></tbody>
     </table></div>
   </div>
@@ -245,11 +245,12 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   <h2>📋 受注登録</h2>
   <div class="form-grid">
     <div><label>受注No. *</label><input type="text" id="o-no" placeholder="例: ORD-2025-001"></div>
+    <div><label>案件名（任意）</label><input type="text" id="o-project" placeholder="例: ○○設備向け部品加工"></div>
     <div><label>客先名</label><input type="text" id="o-customer" placeholder="例: ○○工業株式会社"></div>
     <div><label>受注日</label><input type="date" id="o-orderdate"></div>
     <div><label>目標納期</label><input type="date" id="o-deadline"></div>
     <div><label>数量</label><input type="number" id="o-qty" min="1" value="1"></div>
-    <div><label>備考</label><input type="text" id="o-notes" placeholder="特記事項など"></div>
+    <div class="form-full"><label>備考</label><input type="text" id="o-notes" placeholder="特記事項など"></div>
   </div>
   <div style="margin-top:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -422,9 +423,9 @@ let stepPickerTarget = 'oo'; // 'oo' or 'ap'
 
 function loadDB(){
   try{ const s=localStorage.getItem('seizanDB3'); if(s) return JSON.parse(s); }catch(e){}
-  return {orders:[], oneoff:[], masterStatus:{}, customParts:[], groups:[]};
+  return {orders:[], oneoff:[], masterStatus:{}, customParts:[], groups:[], builtinGroups:{}};
 }
-function ensureGroups(){ if(!DB.groups) DB.groups=[]; }
+function ensureGroups(){ if(!DB.groups) DB.groups=[]; if(!DB.builtinGroups) DB.builtinGroups={}; }
 function saveDB(){ localStorage.setItem('seizanDB3', JSON.stringify(DB)); }
 
 // ===================== ユーティリティ =====================
@@ -522,15 +523,19 @@ function renderOrders(){
   if(orderFilter==='done') list=list.filter(o=>calcOrderPct(o)>=100);
   else if(orderFilter==='active') list=list.filter(o=>calcOrderPct(o)<100);
   else if(orderFilter==='overdue') list=list.filter(o=>{const d=daysLeft(o.deadline);return d!==null&&d<0&&calcOrderPct(o)<100;});
-  if(!list.length){tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">📋</div>受注データがありません</div></td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="11"><div class="empty-state"><div class="icon">📋</div>受注データがありません</div></td></tr>';return;}
   tbody.innerHTML=list.map(o=>{
     const pct=calcOrderPct(o);
-    const names=(o.items||[]).map(i=>i.hinmei||i.zumen).join('、');
+    const itemLines=(o.items||[]).map(i=>`<div style="white-space:nowrap">
+      <span style="color:#888;font-size:10px">${i.zumen}</span>
+      <span style="margin-left:4px">${i.hinmei}</span>
+    </div>`).join('');
     return `<tr>
-      <td style="font-weight:bold;color:#1F4E79">${o.orderNo||'-'}</td>
+      <td style="font-weight:bold;color:#1F4E79;white-space:nowrap">${o.orderNo||'-'}</td>
+      <td style="font-size:11px;color:#555">${o.projectName||'<span style="color:#ccc">-</span>'}</td>
       <td>${o.customer||'-'}</td><td class="center">${o.orderDate||'-'}</td>
       <td class="center">${o.deadline||'-'}</td><td class="center">${deadlineBadge(o.deadline)}</td>
-      <td style="max-width:160px;font-size:11px">${names||'-'}</td>
+      <td style="max-width:180px;font-size:11px">${itemLines||'-'}</td>
       <td class="center">${o.qty||1}</td><td>${progBar(pct)}</td>
       <td class="center">${statusBadge(pct)}</td>
       <td class="center" style="white-space:nowrap">
@@ -542,12 +547,10 @@ function renderOrders(){
 }
 
 function openOrderModal(){
-  document.getElementById('o-no').value='';
-  document.getElementById('o-customer').value='';
+  ['o-no','o-project','o-customer','o-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('o-orderdate').value=today();
   document.getElementById('o-deadline').value='';
   document.getElementById('o-qty').value=1;
-  document.getElementById('o-notes').value='';
   document.getElementById('o-items').innerHTML='';
   addOrderItem();
   document.getElementById('order-modal').classList.add('open');
@@ -570,7 +573,9 @@ function saveOrder(){
     const part=allParts().find(p=>p.zumen===sel.value);
     return {zumen:part.zumen,hinmei:part.hinmei,steps:part.steps,stepStatuses:part.steps.map(()=>'未着手')};
   });
-  DB.orders.push({id:uid(),orderNo:no,customer:document.getElementById('o-customer').value.trim(),
+  DB.orders.push({id:uid(),orderNo:no,
+    projectName:document.getElementById('o-project').value.trim(),
+    customer:document.getElementById('o-customer').value.trim(),
     orderDate:document.getElementById('o-orderdate').value,deadline:document.getElementById('o-deadline').value,
     qty:parseInt(document.getElementById('o-qty').value)||1,notes:document.getElementById('o-notes').value.trim(),items});
   saveDB(); closeOrderModal(); renderAll();
@@ -589,6 +594,7 @@ function openOrderDetail(id){
     <div><div style="font-size:10px;color:#777">受注日</div>${order.orderDate||'-'}</div>
     <div><div style="font-size:10px;color:#777">目標納期</div><b>${order.deadline||'-'}</b></div>
     <div><div style="font-size:10px;color:#777">数量</div>${order.qty||1} 個</div>
+    ${order.projectName?`<div style="grid-column:1/-1"><div style="font-size:10px;color:#777">案件名</div><b>${order.projectName}</b></div>`:''}
     ${order.notes?`<div style="grid-column:1/-1"><div style="font-size:10px;color:#777">備考</div>${order.notes}</div>`:''}`;
   document.getElementById('od-items').innerHTML=(order.items||[]).map((item,ii)=>{
     const pct=Math.round(item.stepStatuses.filter(s=>s==='完了').length/item.steps.length*100);
@@ -883,7 +889,10 @@ function renderMaster(){
 
   const tbody=document.getElementById('master-tbody');
   const custom=DB.customParts||[];
-  let list=[...MASTER_PARTS.map(p=>({...p,isCustom:false,group:''})),...custom.map(p=>({...p,isCustom:true}))];
+  let list=[
+    ...MASTER_PARTS.map(p=>({...p,isCustom:false,group:DB.builtinGroups[p.zumen]||''})),
+    ...custom.map(p=>({...p,isCustom:true}))
+  ];
 
   // グループフィルター
   if(currentGroupFilter==='__none__') list=list.filter(p=>!p.group);
@@ -929,11 +938,12 @@ function renderMaster(){
       }
     }
     html+=`<td style="text-align:center;font-size:15px;font-weight:bold;color:${zansu===0?'#70AD47':'#FF6B6B'}">${zansu}</td>`;
-    const editGrpSel = p.isCustom ? `<select onchange="changePartGroup('${p.zumen}',this)" style="font-size:10px;padding:2px;border-radius:4px;border:1px solid #ccc;margin-bottom:3px;width:100%">
+    const grpSel = `<select onchange="${p.isCustom?'changePartGroup':'changeBuiltinGroup'}('${p.zumen}',this)"
+      style="font-size:10px;padding:2px;border-radius:4px;border:1px solid #ccc;margin-bottom:3px;width:100%">
       <option value="">未分類</option>
       ${DB.groups.map(g=>`<option value="${g.name}" ${p.group===g.name?'selected':''}>${g.name}</option>`).join('')}
-    </select>` : '';
-    html+=`<td class="center" style="min-width:80px">${editGrpSel}${p.isCustom?`<button class="btn btn-sm btn-danger" onclick="deleteCustomPart('${p.zumen}')">削除</button>`:''}`;
+    </select>`;
+    html+=`<td class="center" style="min-width:90px">${grpSel}${p.isCustom?`<button class="btn btn-sm btn-danger" onclick="deleteCustomPart('${p.zumen}')">削除</button>`:''}`;
     return `<tr>${html}</tr>`;
   }).join('');
 }
@@ -941,6 +951,11 @@ function renderMaster(){
 function changePartGroup(zumen, sel){
   const part = (DB.customParts||[]).find(p=>p.zumen===zumen);
   if(part){ part.group=sel.value; saveDB(); renderGroupTabs(); }
+}
+function changeBuiltinGroup(zumen, sel){
+  ensureGroups();
+  DB.builtinGroups[zumen] = sel.value;
+  saveDB(); renderGroupTabs();
 }
 
 function updateMasterStatus(zumen,si,sel){
