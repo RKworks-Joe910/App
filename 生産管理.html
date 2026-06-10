@@ -369,10 +369,10 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   </div>
 </div></div>
 
-<!-- 品番追加モーダル -->
+<!-- 品番追加・編集モーダル（兼用） -->
 <div class="modal-bg" id="addpart-modal">
 <div class="modal">
-  <h2>🔧 品番追加（工程マスタ）</h2>
+  <h2 id="ap-modal-title">🔧 品番追加（工程マスタ）</h2>
   <div class="form-grid">
     <div><label>図番 *</label><input type="text" id="ap-zumen" placeholder="例: RGH3-X001-00"></div>
     <div><label>品名 *</label><input type="text" id="ap-hinmei" placeholder="例: 特注ブラケット"></div>
@@ -395,7 +395,7 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   </div>
   <div class="form-actions">
     <button class="btn" onclick="document.getElementById('addpart-modal').classList.remove('open')" style="background:#eee">キャンセル</button>
-    <button class="btn btn-primary" onclick="saveAddPart()">💾 追加</button>
+    <button class="btn btn-primary" id="ap-save-btn" onclick="saveAddPart()">💾 追加</button>
   </div>
 </div></div>
 
@@ -423,9 +423,9 @@ let stepPickerTarget = 'oo'; // 'oo' or 'ap'
 
 function loadDB(){
   try{ const s=localStorage.getItem('seizanDB3'); if(s) return JSON.parse(s); }catch(e){}
-  return {orders:[], oneoff:[], masterStatus:{}, customParts:[], groups:[], builtinGroups:{}};
+  return {orders:[], oneoff:[], masterStatus:{}, customParts:[], groups:[], builtinGroups:{}, builtinOverrides:{}};
 }
-function ensureGroups(){ if(!DB.groups) DB.groups=[]; if(!DB.builtinGroups) DB.builtinGroups={}; }
+function ensureGroups(){ if(!DB.groups) DB.groups=[]; if(!DB.builtinGroups) DB.builtinGroups={}; if(!DB.builtinOverrides) DB.builtinOverrides={}; }
 function saveDB(){ localStorage.setItem('seizanDB3', JSON.stringify(DB)); }
 
 // ===================== ユーティリティ =====================
@@ -474,7 +474,14 @@ function calcOneoffPct(oo){
   const ss=oo.stepStatuses||[]; if(!ss.length) return 0;
   return Math.round(ss.filter(s=>s==='完了').length/ss.length*100);
 }
-function allParts(){ return [...MASTER_PARTS, ...(DB.customParts||[])]; }
+function allParts(){
+  ensureGroups();
+  const builtins = MASTER_PARTS.map(p=>{
+    const ov = DB.builtinOverrides[p.zumen];
+    return ov ? {...p, hinmei:ov.hinmei||p.hinmei, steps:ov.steps||p.steps} : p;
+  });
+  return [...builtins, ...(DB.customParts||[])];
+}
 
 // ===================== タブ =====================
 function switchTab(name, el){
@@ -890,7 +897,10 @@ function renderMaster(){
   const tbody=document.getElementById('master-tbody');
   const custom=DB.customParts||[];
   let list=[
-    ...MASTER_PARTS.map(p=>({...p,isCustom:false,group:DB.builtinGroups[p.zumen]||''})),
+    ...MASTER_PARTS.map(p=>{
+      const ov = DB.builtinOverrides[p.zumen];
+      return {...p, hinmei:ov?.hinmei||p.hinmei, steps:ov?.steps||p.steps, isCustom:false, group:DB.builtinGroups[p.zumen]||''};
+    }),
     ...custom.map(p=>({...p,isCustom:true}))
   ];
 
@@ -943,7 +953,12 @@ function renderMaster(){
       <option value="">未分類</option>
       ${DB.groups.map(g=>`<option value="${g.name}" ${p.group===g.name?'selected':''}>${g.name}</option>`).join('')}
     </select>`;
-    html+=`<td class="center" style="min-width:90px">${grpSel}${p.isCustom?`<button class="btn btn-sm btn-danger" onclick="deleteCustomPart('${p.zumen}')">削除</button>`:''}`;
+    const hasOverride = !p.isCustom && DB.builtinOverrides && DB.builtinOverrides[p.zumen];
+    const editedTag = hasOverride ? '<span style="font-size:9px;background:#FFF0E0;color:#C55A00;border:1px solid #F4B183;border-radius:3px;padding:1px 4px;display:block;margin-bottom:2px">編集済</span>' : '';
+    html+=`<td class="center" style="min-width:90px">${grpSel}${editedTag}
+      <button class="btn btn-sm btn-outline" style="margin-bottom:2px;width:100%" onclick="openEditPartModal('${p.zumen}',${p.isCustom})">✏ 編集</button>
+      ${p.isCustom?`<button class="btn btn-sm btn-danger" style="width:100%" onclick="deleteCustomPart('${p.zumen}')">削除</button>`:''}
+    </td>`;
     return `<tr>${html}</tr>`;
   }).join('');
 }
@@ -964,18 +979,58 @@ function updateMasterStatus(zumen,si,sel){
   DB.masterStatus[zumen+'_'+si]=sel.value; saveDB();
 }
 
+let apEditMode = false; // false=新規追加, true=編集
+let apEditIsCustom = false;
+
 function openAddPartModal(){
   ensureGroups();
+  apEditMode = false; apEditIsCustom = false;
+  document.getElementById('ap-modal-title').textContent = '🔧 品番追加（工程マスタ）';
+  document.getElementById('ap-save-btn').textContent = '💾 追加';
   document.getElementById('ap-zumen').value='';
+  document.getElementById('ap-zumen').readOnly = false;
   document.getElementById('ap-hinmei').value='';
   document.getElementById('ap-steps').innerHTML='';
-  // グループセレクト更新
   const sel = document.getElementById('ap-group');
   sel.innerHTML='<option value="">未分類（グループなし）</option>'+DB.groups.map(g=>`<option value="${g.name}">${g.name}</option>`).join('');
-  // 現在フィルター中のグループを初期選択
-  if(currentGroupFilter!=='__all__'&&currentGroupFilter!=='__none__'){
-    sel.value=currentGroupFilter;
+  if(currentGroupFilter!=='__all__'&&currentGroupFilter!=='__none__') sel.value=currentGroupFilter;
+  document.getElementById('addpart-modal').classList.add('open');
+}
+
+function openEditPartModal(zumen, isCustom){
+  ensureGroups();
+  apEditMode = true; apEditIsCustom = isCustom;
+
+  // 現在の有効データを取得（オーバーライド考慮）
+  let part;
+  if(isCustom){
+    part = (DB.customParts||[]).find(p=>p.zumen===zumen);
+  } else {
+    const base = MASTER_PARTS.find(p=>p.zumen===zumen);
+    const ov = DB.builtinOverrides[zumen];
+    part = ov ? {...base, hinmei:ov.hinmei||base.hinmei, steps:ov.steps||base.steps, group:DB.builtinGroups[zumen]||''} : {...base, group:DB.builtinGroups[zumen]||''};
   }
+  if(!part) return;
+
+  document.getElementById('ap-modal-title').textContent = `✏ 編集: ${part.zumen}`;
+  document.getElementById('ap-save-btn').textContent = '💾 変更を保存';
+  document.getElementById('ap-zumen').value = part.zumen;
+  document.getElementById('ap-zumen').readOnly = true; // 図番は変更不可
+  document.getElementById('ap-hinmei').value = part.hinmei||'';
+
+  // グループセレクト
+  const sel = document.getElementById('ap-group');
+  sel.innerHTML='<option value="">未分類（グループなし）</option>'+DB.groups.map(g=>`<option value="${g.name}">${g.name}</option>`).join('');
+  sel.value = part.group||'';
+
+  // 既存ステップを展開
+  document.getElementById('ap-steps').innerHTML='';
+  (part.steps||[]).forEach(s=>{
+    const proc = typeof s==='string' ? s : s.process;
+    const assign = typeof s==='object' ? (s.assignee||'') : '';
+    addStepRow('ap-steps', proc, assign);
+  });
+
   document.getElementById('addpart-modal').classList.add('open');
 }
 
@@ -985,8 +1040,24 @@ function saveAddPart(){
   if(!zumen||!hinmei){alert('図番と品名を入力してください');return;}
   const steps=collectSteps('ap-steps');
   const group=document.getElementById('ap-group').value;
-  if(!DB.customParts) DB.customParts=[];
-  DB.customParts.push({zumen,hinmei,steps,group});
+
+  if(apEditMode){
+    if(apEditIsCustom){
+      // カスタム品番の更新
+      const part=(DB.customParts||[]).find(p=>p.zumen===zumen);
+      if(part){ part.hinmei=hinmei; part.steps=steps; part.group=group; }
+    } else {
+      // 標準品番のオーバーライド保存
+      DB.builtinOverrides[zumen]={hinmei,steps};
+      DB.builtinGroups[zumen]=group;
+    }
+  } else {
+    if(!DB.customParts) DB.customParts=[];
+    if([...MASTER_PARTS,...DB.customParts].some(p=>p.zumen===zumen)){
+      alert(`図番「${zumen}」は既に存在します`); return;
+    }
+    DB.customParts.push({zumen,hinmei,steps,group});
+  }
   saveDB();
   document.getElementById('addpart-modal').classList.remove('open');
   renderMaster();
