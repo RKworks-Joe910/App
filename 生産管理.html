@@ -8,21 +8,16 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"Meiryo","Yu Gothic",sans-serif;background:#f0f4f8;color:#1a1a2e;font-size:13px}
 
-/* ヘッダー */
 header{background:linear-gradient(135deg,#1F4E79,#2E75B6);color:white;padding:12px 20px;
   display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
 header h1{font-size:18px;letter-spacing:1px}
-.header-date{font-size:12px;opacity:.8}
 
-/* タブ */
 .tabs{display:flex;background:#1a3a5c;padding:0 20px}
 .tab{padding:10px 22px;cursor:pointer;color:rgba(255,255,255,.6);font-size:13px;border-bottom:3px solid transparent;transition:.2s}
 .tab.active{color:white;border-bottom-color:#FFD700;font-weight:bold}
 .tab:hover{color:white}
-.tab-content{display:none}
-.tab-content.active{display:block}
+.tab-content{display:none}.tab-content.active{display:block}
 
-/* サマリーカード */
 .summary{display:flex;gap:12px;padding:14px 20px;flex-wrap:wrap}
 .card{background:white;border-radius:10px;padding:12px 18px;min-width:130px;
   box-shadow:0 2px 6px rgba(0,0,0,.1);text-align:center;border-top:4px solid #ccc;flex:1}
@@ -30,10 +25,8 @@ header h1{font-size:18px;letter-spacing:1px}
 .card.c-red{border-color:#FF6B6B}.card.c-orange{border-color:#ED7D31}
 .card .num{font-size:26px;font-weight:bold}.card .lbl{font-size:11px;color:#666;margin-top:2px}
 
-/* ページパディング */
 .page{padding:0 20px 30px}
 
-/* テーブル共通 */
 .tbl-wrap{overflow-x:auto;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden}
 thead{background:#1F4E79;color:white;position:sticky;top:42px;z-index:5}
@@ -42,28 +35,17 @@ tbody tr:nth-child(even){background:#f7f9ff}
 tbody tr:hover{background:#e8f0fe}
 td{padding:7px 8px;border-bottom:1px solid #e8e8e8;vertical-align:middle}
 td.center{text-align:center}
-td.bold{font-weight:bold}
 
-/* バッジ */
 .badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:bold}
-.badge-green{background:#70AD47;color:white}
-.badge-blue{background:#2E75B6;color:white}
-.badge-yellow{background:#FFD966;color:#7F6000}
-.badge-red{background:#FF6B6B;color:white}
-.badge-gray{background:#d0d0d0;color:#555}
-.badge-orange{background:#ED7D31;color:white}
+.badge-green{background:#70AD47;color:white}.badge-blue{background:#2E75B6;color:white}
+.badge-yellow{background:#FFD966;color:#7F6000}.badge-red{background:#FF6B6B;color:white}
+.badge-gray{background:#d0d0d0;color:#555}.badge-orange{background:#ED7D31;color:white}
+.badge-purple{background:#7030A0;color:white}
 
-/* 納期 */
-.deadline-ok{color:#70AD47;font-weight:bold}
-.deadline-warn{color:#ED7D31;font-weight:bold}
-.deadline-over{color:#FF6B6B;font-weight:bold}
-
-/* プログレスバー */
 .prog-wrap{min-width:80px}
 .prog-bar{height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-top:3px}
 .prog-fill{height:100%;background:linear-gradient(90deg,#70AD47,#A9D18E);border-radius:4px;transition:width .4s}
 
-/* ボタン */
 .btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;transition:.2s}
 .btn-primary{background:#1F4E79;color:white}.btn-primary:hover{background:#2E75B6}
 .btn-success{background:#70AD47;color:white}.btn-success:hover{background:#548235}
@@ -72,14 +54,12 @@ td.bold{font-weight:bold}
 .btn-outline{background:white;border:2px solid #2E75B6;color:#2E75B6}
 .btn-outline:hover{background:#2E75B6;color:white}
 
-/* モーダル */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
-.modal{background:white;border-radius:12px;padding:24px;width:min(700px,95vw);max-height:88vh;overflow-y:auto;
+.modal{background:white;border-radius:12px;padding:24px;width:min(720px,95vw);max-height:90vh;overflow-y:auto;
   box-shadow:0 8px 32px rgba(0,0,0,.3)}
 .modal h2{font-size:16px;margin-bottom:16px;color:#1F4E79;border-bottom:2px solid #BDD7EE;padding-bottom:8px}
 
-/* フォーム */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-grid.col3{grid-template-columns:1fr 1fr 1fr}
 .form-full{grid-column:1/-1}
@@ -91,43 +71,47 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#2E75B6}
 textarea{resize:vertical;min-height:60px}
 .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 
-/* 工程ステップ選択 */
-.steps-editor{border:1.5px solid #ccc;border-radius:8px;padding:12px}
-.step-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.step-row input{flex:1}
-.step-num{width:24px;height:24px;background:#1F4E79;color:white;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;flex-shrink:0}
+/* 工程ステップエディタ */
+.steps-editor{border:1.5px solid #dce4ef;border-radius:8px;padding:10px;background:#fafcff}
+.step-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;background:white;
+  border:1px solid #e0e8f0;border-radius:6px;padding:6px 8px}
+.step-num{width:22px;height:22px;background:#1F4E79;color:white;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;flex-shrink:0}
+.step-process{flex:1.2}
+.step-assignee{flex:1}
+.step-sep{color:#aaa;font-size:11px;flex-shrink:0}
 
-/* 工程進捗ステータス */
+/* 工程ステップ表示チップ */
+.step-chip{display:inline-flex;align-items:center;gap:3px;margin:2px;
+  background:#EBF3FB;border:1px solid #BDD7EE;border-radius:16px;padding:3px 8px 3px 4px}
+.step-chip .chip-num{width:18px;height:18px;background:#1F4E79;color:white;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:bold;flex-shrink:0}
+.step-chip .chip-proc{font-size:11px;font-weight:bold;color:#1F4E79}
+.step-chip .chip-assign{font-size:10px;color:#666;margin-left:2px}
+
 select.st-sel{width:80px;padding:3px 2px;border-radius:6px;border:none;font-size:11px;
   font-weight:bold;cursor:pointer;text-align:center}
 select.st-done{background:#70AD47;color:white}
 select.st-inprog{background:#2E75B6;color:white}
 select.st-notyet{background:#FFD966;color:#7F6000}
-select.st-skip{background:#e0e0e0;color:#aaa}
 
-/* ツールバー */
 .toolbar{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px}
 .toolbar-left{display:flex;gap:8px;align-items:center}
 
-/* 受注詳細 */
-.order-detail{background:#f7f9ff;border-radius:8px;padding:12px;margin-top:8px}
-.items-table{margin-top:8px}
-
-/* 凡例 */
 .legend{display:flex;gap:12px;padding:6px 20px;font-size:11px;flex-wrap:wrap;background:#f8f9fb;border-bottom:1px solid #e0e0e0}
 .legend-item{display:flex;align-items:center;gap:4px}
 .ld{width:12px;height:12px;border-radius:3px}
 
-/* 空状態 */
-.empty-state{text-align:center;padding:50px;color:#999}
-.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state{text-align:center;padding:40px;color:#999}
+.empty-state .icon{font-size:40px;margin-bottom:10px}
 
-/* フィルターバー */
 .filter-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .flt-btn{padding:5px 13px;border:1.5px solid #ccc;border-radius:16px;cursor:pointer;
   background:white;font-size:12px;transition:.2s}
 .flt-btn.active{background:#1F4E79;color:white;border-color:#1F4E79}
+
+.custom-tag{display:inline-block;background:#FFF0E0;color:#C55A00;border:1px solid #F4B183;
+  border-radius:4px;font-size:10px;padding:1px 5px;margin-left:4px;font-weight:bold}
 
 @media(max-width:600px){.form-grid{grid-template-columns:1fr}.form-grid.col3{grid-template-columns:1fr}}
 </style>
@@ -136,26 +120,27 @@ select.st-skip{background:#e0e0e0;color:#aaa}
 
 <header>
   <h1>🏭 生産管理システム</h1>
-  <div style="display:flex;gap:12px;align-items:center">
-    <span class="header-date" id="hdr-date"></span>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span id="hdr-date" style="font-size:12px;opacity:.8"></span>
     <button class="btn btn-outline" onclick="exportData()" style="font-size:11px;padding:5px 10px">📥 データ出力</button>
   </div>
 </header>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('dashboard')">📊 ダッシュボード</div>
-  <div class="tab" onclick="switchTab('orders')">📋 受注管理</div>
-  <div class="tab" onclick="switchTab('oneoff')">⚡ 単発案件</div>
-  <div class="tab" onclick="switchTab('master')">🔧 工程マスタ</div>
+  <div class="tab active" onclick="switchTab('dashboard',this)">📊 ダッシュボード</div>
+  <div class="tab" onclick="switchTab('orders',this)">📋 受注管理</div>
+  <div class="tab" onclick="switchTab('oneoff',this)">⚡ 単発案件</div>
+  <div class="tab" onclick="switchTab('master',this)">🔧 工程マスタ</div>
 </div>
 
 <div class="legend">
   <div class="legend-item"><div class="ld" style="background:#70AD47"></div>完了</div>
   <div class="legend-item"><div class="ld" style="background:#2E75B6"></div>作業中</div>
   <div class="legend-item"><div class="ld" style="background:#FFD966"></div>未着手</div>
+  <div class="legend-item"><span class="custom-tag">追加</span>手動追加品番</div>
 </div>
 
-<!-- ========== ダッシュボード ========== -->
+<!-- ダッシュボード -->
 <div id="tab-dashboard" class="tab-content active">
   <div class="summary">
     <div class="card c-blue"><div class="num" id="d-orders">0</div><div class="lbl">受注件数</div></div>
@@ -169,22 +154,19 @@ select.st-skip{background:#e0e0e0;color:#aaa}
     <table>
       <thead><tr><th>種別</th><th>案件名/受注No.</th><th>客先</th><th>納期</th><th>残り日数</th><th>進捗</th><th>ステータス</th></tr></thead>
       <tbody id="dash-tbody"></tbody>
-    </table>
-    </div>
+    </table></div>
   </div>
 </div>
 
-<!-- ========== 受注管理 ========== -->
+<!-- 受注管理 -->
 <div id="tab-orders" class="tab-content">
   <div class="page" style="padding-top:14px">
     <div class="toolbar">
-      <div class="toolbar-left">
-        <div class="filter-bar">
-          <div class="flt-btn active" onclick="setOrderFilter('all',this)">すべて</div>
-          <div class="flt-btn" onclick="setOrderFilter('active',this)">進行中</div>
-          <div class="flt-btn" onclick="setOrderFilter('done',this)">完了</div>
-          <div class="flt-btn" onclick="setOrderFilter('overdue',this)">納期超過</div>
-        </div>
+      <div class="filter-bar" style="margin-bottom:0">
+        <div class="flt-btn active" onclick="setOrderFilter('all',this)">すべて</div>
+        <div class="flt-btn" onclick="setOrderFilter('active',this)">進行中</div>
+        <div class="flt-btn" onclick="setOrderFilter('done',this)">完了</div>
+        <div class="flt-btn" onclick="setOrderFilter('overdue',this)">納期超過</div>
       </div>
       <button class="btn btn-primary" onclick="openOrderModal()">＋ 新規受注登録</button>
     </div>
@@ -192,16 +174,15 @@ select.st-skip{background:#e0e0e0;color:#aaa}
     <table>
       <thead><tr><th>受注No.</th><th>客先</th><th>受注日</th><th>目標納期</th><th>残り</th><th>品番/品名</th><th>数量</th><th>全体進捗</th><th>ステータス</th><th>操作</th></tr></thead>
       <tbody id="orders-tbody"></tbody>
-    </table>
-    </div>
+    </table></div>
   </div>
 </div>
 
-<!-- ========== 単発案件 ========== -->
+<!-- 単発案件 -->
 <div id="tab-oneoff" class="tab-content">
   <div class="page" style="padding-top:14px">
     <div class="toolbar">
-      <div class="filter-bar">
+      <div class="filter-bar" style="margin-bottom:0">
         <div class="flt-btn active" onclick="setOneoffFilter('all',this)">すべて</div>
         <div class="flt-btn" onclick="setOneoffFilter('active',this)">進行中</div>
         <div class="flt-btn" onclick="setOneoffFilter('done',this)">完了</div>
@@ -210,81 +191,72 @@ select.st-skip{background:#e0e0e0;color:#aaa}
     </div>
     <div class="tbl-wrap">
     <table>
-      <thead><tr><th>案件名</th><th>客先</th><th>数量</th><th>目標納期</th><th>残り</th><th>工程進捗</th><th>ステータス</th><th>備考</th><th>操作</th></tr></thead>
+      <thead><tr><th>図番</th><th>案件名</th><th>客先</th><th>数量</th><th>目標納期</th><th>残り</th><th>工程進捗</th><th>ステータス</th><th>備考</th><th>操作</th></tr></thead>
       <tbody id="oneoff-tbody"></tbody>
-    </table>
-    </div>
+    </table></div>
   </div>
 </div>
 
-<!-- ========== 工程マスタ（進捗管理） ========== -->
+<!-- 工程マスタ -->
 <div id="tab-master" class="tab-content">
   <div class="page" style="padding-top:14px">
-    <div class="filter-bar" style="margin-bottom:10px">
-      <div class="flt-btn active" onclick="setMasterFilter('all',this)">すべて</div>
-      <div class="flt-btn" onclick="setMasterFilter('notyet',this)">注残あり</div>
-      <div class="flt-btn" onclick="setMasterFilter('done',this)">完了済み</div>
+    <div class="toolbar">
+      <div class="filter-bar" style="margin-bottom:0">
+        <div class="flt-btn active" onclick="setMasterFilter('all',this)">すべて</div>
+        <div class="flt-btn" onclick="setMasterFilter('notyet',this)">注残あり</div>
+        <div class="flt-btn" onclick="setMasterFilter('done',this)">完了済み</div>
+        <div class="flt-btn" onclick="setMasterFilter('custom',this)">手動追加のみ</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddPartModal()">＋ 品番追加</button>
     </div>
     <div class="tbl-wrap">
     <table>
-      <thead><tr><th>図番</th><th>品名</th><th style="width:240px">工程1</th><th style="width:80px">状態</th><th style="width:240px">工程2</th><th style="width:80px">状態</th><th style="width:240px">工程3</th><th style="width:80px">状態</th><th style="width:240px">工程4</th><th style="width:80px">状態</th><th>注残</th></tr></thead>
+      <thead><tr><th>図番</th><th>品名</th>
+        <th colspan="2">工程1</th><th colspan="2">工程2</th>
+        <th colspan="2">工程3</th><th colspan="2">工程4</th>
+        <th>注残</th><th>操作</th></tr>
+        <tr style="background:#2E75B6">
+          <th></th><th></th>
+          <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
+          <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
+          <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
+          <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
+          <th></th><th></th>
+        </tr>
+      </thead>
       <tbody id="master-tbody"></tbody>
-    </table>
-    </div>
+    </table></div>
   </div>
 </div>
 
-<!-- ========== 受注登録モーダル ========== -->
+<!-- 受注登録モーダル -->
 <div class="modal-bg" id="order-modal">
 <div class="modal">
   <h2>📋 受注登録</h2>
   <div class="form-grid">
-    <div>
-      <label>受注No. *</label>
-      <input type="text" id="o-no" placeholder="例: ORD-2025-001">
-    </div>
-    <div>
-      <label>客先名 *</label>
-      <input type="text" id="o-customer" placeholder="例: ○○工業株式会社">
-    </div>
-    <div>
-      <label>受注日</label>
-      <input type="date" id="o-orderdate">
-    </div>
-    <div>
-      <label>目標納期 *</label>
-      <input type="date" id="o-deadline">
-    </div>
-    <div>
-      <label>数量</label>
-      <input type="number" id="o-qty" min="1" value="1">
-    </div>
-    <div>
-      <label>備考</label>
-      <input type="text" id="o-notes" placeholder="特記事項など">
-    </div>
+    <div><label>受注No. *</label><input type="text" id="o-no" placeholder="例: ORD-2025-001"></div>
+    <div><label>客先名</label><input type="text" id="o-customer" placeholder="例: ○○工業株式会社"></div>
+    <div><label>受注日</label><input type="date" id="o-orderdate"></div>
+    <div><label>目標納期</label><input type="date" id="o-deadline"></div>
+    <div><label>数量</label><input type="number" id="o-qty" min="1" value="1"></div>
+    <div><label>備考</label><input type="text" id="o-notes" placeholder="特記事項など"></div>
   </div>
-  
-  <div style="margin-top:16px">
-    <label style="display:flex;align-items:center;justify-content:space-between">
-      <span>品番選択（複数追加可）</span>
+  <div style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <label style="margin:0">品番選択（複数追加可）</label>
       <button class="btn btn-sm btn-outline" onclick="addOrderItem()">＋ 品番追加</button>
-    </label>
-    <div id="o-items" style="margin-top:8px;max-height:260px;overflow-y:auto">
-      <!-- 動的追加 -->
     </div>
+    <div id="o-items" style="max-height:220px;overflow-y:auto"></div>
   </div>
-  
   <div class="form-actions">
     <button class="btn" onclick="closeOrderModal()" style="background:#eee">キャンセル</button>
     <button class="btn btn-primary" onclick="saveOrder()">💾 登録</button>
   </div>
-</div>
-</div>
+</div></div>
 
-<!-- ========== 受注詳細モーダル ========== -->
+<!-- 受注詳細モーダル -->
 <div class="modal-bg" id="order-detail-modal">
-<div class="modal" style="width:min(900px,95vw)">
+<div class="modal" style="width:min(920px,95vw)">
   <h2 id="od-title">受注詳細</h2>
   <div id="od-info" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;background:#f0f4f8;padding:10px;border-radius:8px;font-size:12px"></div>
   <div id="od-items"></div>
@@ -292,216 +264,205 @@ select.st-skip{background:#e0e0e0;color:#aaa}
     <button class="btn" onclick="closeDetailModal()" style="background:#eee">閉じる</button>
     <button class="btn btn-danger btn-sm" id="od-delete-btn">🗑 削除</button>
   </div>
-</div>
-</div>
+</div></div>
 
-<!-- ========== 単発案件モーダル ========== -->
+<!-- 単発案件モーダル -->
 <div class="modal-bg" id="oneoff-modal">
 <div class="modal">
   <h2>⚡ 単発案件登録</h2>
   <div class="form-grid">
-    <div>
-      <label>案件名 *</label>
-      <input type="text" id="oo-name" placeholder="例: 特注ブラケット加工">
-    </div>
-    <div>
-      <label>客先名</label>
-      <input type="text" id="oo-customer" placeholder="例: ○○製作所">
-    </div>
-    <div>
-      <label>数量</label>
-      <input type="number" id="oo-qty" min="1" value="1">
-    </div>
-    <div>
-      <label>目標納期</label>
-      <input type="date" id="oo-deadline">
-    </div>
-    <div class="form-full">
-      <label>備考</label>
-      <textarea id="oo-notes" placeholder="特記事項など" rows="2"></textarea>
-    </div>
+    <div><label>図番</label><input type="text" id="oo-zumen" placeholder="例: SP-001"></div>
+    <div><label>案件名 *</label><input type="text" id="oo-name" placeholder="例: 特注ブラケット加工"></div>
+    <div><label>客先名</label><input type="text" id="oo-customer" placeholder="例: ○○製作所"></div>
+    <div><label>数量</label><input type="number" id="oo-qty" min="1" value="1"></div>
+    <div><label>目標納期</label><input type="date" id="oo-deadline"></div>
+    <div><label>備考</label><input type="text" id="oo-notes" placeholder="特記事項など"></div>
   </div>
-  
   <div style="margin-top:14px">
-    <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <span>工程ステップ（順番に追加）</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <label style="margin:0">工程ステップ（順番に追加）</label>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-sm btn-outline" onclick="addOneoffStepFromList()">📋 既存から選ぶ</button>
-        <button class="btn btn-sm btn-outline" onclick="addOneoffStepCustom()">＋ 手入力追加</button>
+        <button class="btn btn-sm btn-outline" onclick="openStepPicker('oo')">📋 既存工程から選ぶ</button>
+        <button class="btn btn-sm btn-outline" onclick="addStepRow('oo-steps','','')">＋ 手入力追加</button>
       </div>
-    </label>
-    <div id="oo-steps" class="steps-editor" style="min-height:60px"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:4px;margin-bottom:4px;padding:0 6px">
+      <span style="font-size:10px;color:#888">工程名（旋盤・フライス・メッキ等）</span>
+      <span style="font-size:10px;color:#888">担当／業者名（社内・会社名等）</span>
+      <span></span>
+    </div>
+    <div id="oo-steps" class="steps-editor" style="min-height:50px"></div>
   </div>
-  
   <div class="form-actions">
     <button class="btn" onclick="closeOneoffModal()" style="background:#eee">キャンセル</button>
     <button class="btn btn-primary" onclick="saveOneoff()">💾 登録</button>
   </div>
-</div>
-</div>
+</div></div>
 
-<!-- 既存工程選択ドロップダウン -->
+<!-- 品番追加モーダル -->
+<div class="modal-bg" id="addpart-modal">
+<div class="modal">
+  <h2>🔧 品番追加（工程マスタ）</h2>
+  <div class="form-grid">
+    <div><label>図番 *</label><input type="text" id="ap-zumen" placeholder="例: RGH3-X001-00"></div>
+    <div><label>品名 *</label><input type="text" id="ap-hinmei" placeholder="例: 特注ブラケット"></div>
+  </div>
+  <div style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <label style="margin:0">工程ステップ</label>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-outline" onclick="openStepPicker('ap')">📋 既存工程から選ぶ</button>
+        <button class="btn btn-sm btn-outline" onclick="addStepRow('ap-steps','','')">＋ 手入力追加</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:4px;margin-bottom:4px;padding:0 6px">
+      <span style="font-size:10px;color:#888">工程名（旋盤・フライス・メッキ等）</span>
+      <span style="font-size:10px;color:#888">担当／業者名（社内・会社名等）</span>
+      <span></span>
+    </div>
+    <div id="ap-steps" class="steps-editor" style="min-height:50px"></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn" onclick="document.getElementById('addpart-modal').classList.remove('open')" style="background:#eee">キャンセル</button>
+    <button class="btn btn-primary" onclick="saveAddPart()">💾 追加</button>
+  </div>
+</div></div>
+
+<!-- 工程ピッカーモーダル -->
 <div class="modal-bg" id="step-picker-modal">
-<div class="modal" style="width:min(500px,95vw);max-height:60vh">
+<div class="modal" style="width:min(480px,95vw)">
   <h2>工程を選択</h2>
-  <input type="text" id="step-search" placeholder="工程名で絞り込み..." oninput="filterSteps(this.value)" style="margin-bottom:10px">
-  <div id="step-list" style="max-height:320px;overflow-y:auto;border:1px solid #eee;border-radius:6px"></div>
+  <p style="font-size:11px;color:#666;margin-bottom:8px">選択後、担当者/業者名を入力できます</p>
+  <input type="text" id="step-search" placeholder="工程名で絞り込み..." oninput="filterSteps(this.value)" style="margin-bottom:8px">
+  <div id="step-list" style="max-height:340px;overflow-y:auto;border:1px solid #eee;border-radius:6px"></div>
   <div class="form-actions">
     <button class="btn" onclick="document.getElementById('step-picker-modal').classList.remove('open')" style="background:#eee">キャンセル</button>
   </div>
-</div>
-</div>
+</div></div>
 
 <script>
-// ==================== データ ====================
-const MASTER_PARTS = [{"zumen": "RGH3-A002-00", "hinmei": "取付板", "kouteibun": "関根製作所（全加工）→さくらＧＳ", "steps": ["関根製作所（全加工）", "さくらＧＳ"]}, {"zumen": "RGH3-B001-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞｱｰﾑ組立", "kouteibun": "ＲＧＨ3-007ｽﾌﾟﾘﾝｸﾞｱ‐ﾑ板（関根製作所全加工）→社内ボール盤→さくらＧＳ", "steps": ["ＲＧＨ3-007ｽﾌﾟﾘﾝｸﾞｱ‐ﾑ板（関根製作所全加工）", "社内ボール盤", "さくらＧＳ"]}, {"zumen": "RGH3-006", "hinmei": "ｱｰﾑ軸受", "kouteibun": "SS磨　Φ25X500L   社内旋盤加工→関根製作所支給　(RGH3-B003-00共通部品）", "steps": ["SS磨 Φ25X500L   社内旋盤加工", "関根製作所支給 (RGH3-B003-00共通部品）"]}, {"zumen": "RGH3-A008-00", "hinmei": "ｱ－ﾑ軸", "kouteibun": "SSﾐｶﾞｷ　Φ25Ｘ79Ｌ　製作数購入　   社内旋盤→さくらＧＳ", "steps": ["SSﾐｶﾞｷ Φ25Ｘ79Ｌ 製作数購入    社内旋盤", "さくらＧＳ"]}, {"zumen": "RGH3-A011-00", "hinmei": "中間コロ", "kouteibun": "合成素材（全加工）", "steps": ["合成素材（全加工）"]}, {"zumen": "RGH3-A012-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞ用ﾎﾞﾙﾄ", "kouteibun": "IKE(全加工）→さくらＧＳ", "steps": ["IKE(全加工）", "さくらＧＳ"]}, {"zumen": "RGH3-A013-00", "hinmei": "後部ｽﾌﾟﾘﾝｸﾞ保持器", "kouteibun": "A5056　Φ35Ｘ120L  購入　　社内旋盤", "steps": ["A5056 Φ35Ｘ120L  購入  社内旋盤"]}, {"zumen": "RGH3-A014-00", "hinmei": "前部ｽﾌﾟﾘﾝｸﾞ保持器", "kouteibun": "合成素材（全加工）", "steps": ["合成素材（全加工）"]}, {"zumen": "RGH3-A015-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞ支持台", "kouteibun": "三和ステンレス（全加工）→さくらＧＳ", "steps": ["三和ステンレス（全加工）", "さくらＧＳ"]}, {"zumen": "RGH3-A016-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞ中間軸", "kouteibun": "ヨシザワ（全加工）→さくらＧＳ", "steps": ["ヨシザワ（全加工）", "さくらＧＳ"]}, {"zumen": "RGH3-A017-00", "hinmei": "ｽﾌﾟﾘﾝｸﾞ中間軸受け", "kouteibun": "アイナ（全加工）→さくらＧＳ", "steps": ["アイナ（全加工）", "さくらＧＳ"]}, {"zumen": "RGH3-A019-01", "hinmei": "ﾀﾞﾝﾊﾟ-先端金具", "kouteibun": "三和ステンレス（全加工）→さくらＧＳ", "steps": ["三和ステンレス（全加工）", "さくらＧＳ"]}, {"zumen": "RGH3-A020-00", "hinmei": "中間コロ軸", "kouteibun": "IKE(全加工）→さくらＧＳ", "steps": ["IKE(全加工）", "さくらＧＳ"]}, {"zumen": "RGH3-A023-01", "hinmei": "ﾗﾁｪｯﾄ爪", "kouteibun": "三和ステンレス（全加工）→社内ﾎﾞ‐ﾙ盤（Φ17ﾘ‐ﾏ）→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["三和ステンレス（全加工）", "社内ﾎﾞ‐ﾙ盤（Φ17ﾘ‐ﾏ）", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"]}, {"zumen": "RGH3-A025-00", "hinmei": "ﾗﾁｪｯﾄ爪支柱", "kouteibun": "SSﾐｶﾞｷΦ25Ｘ300Ｌ　１本購入　社内旋盤→さくらＧＳ", "steps": ["SSﾐｶﾞｷΦ25Ｘ300Ｌ １本購入 社内旋盤", "さくらＧＳ"]}, {"zumen": "RGH3-A026-00", "hinmei": "ﾗﾁｪｯﾄ爪保持ﾌﾞｯｼｭ", "kouteibun": "合成素材（全加工）", "steps": ["合成素材（全加工）"]}, {"zumen": "RGH3-A103-01", "hinmei": "ｿﾚﾉｲﾄﾞ台", "kouteibun": "アイナ（全加工）→さくらＧＳ", "steps": ["アイナ（全加工）", "さくらＧＳ"]}, {"zumen": "RGH3-A100-02", "hinmei": "ｿﾚﾉｲﾄﾞｶﾞｲﾄﾞ", "kouteibun": "三和ステンレス（全加工）→精光電装（アルマイト）", "steps": ["三和ステンレス（全加工）", "精光電装（アルマイト）"]}, {"zumen": "RGH3-A104-03", "hinmei": "ｿﾚﾉｲﾄﾞﾛｯｸ金具", "kouteibun": "アイナ（全加工）→松本研磨（バフ）", "steps": ["アイナ（全加工）", "松本研磨（バフ）"]}, {"zumen": "RGH3-A102-00", "hinmei": "連結金具", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"]}, {"zumen": "RGH3-A049-01", "hinmei": "ﾍﾞｱﾘﾝｸﾞ保持器", "kouteibun": "ＳＳ黒皮Φ150Ｘ35Ｌ　製作数購入　茨城工場→さくらＧＳ", "steps": ["ＳＳ黒皮Φ150Ｘ35Ｌ 製作数購入 茨城工場", "さくらＧＳ"]}, {"zumen": "RGH3-A050-00", "hinmei": "ｽﾍﾟ-ｻ-", "kouteibun": "真鍮Ｃ3604Φ100Ｘ25Ｌ　製作数購入　社内旋盤", "steps": ["真鍮Ｃ3604Φ100Ｘ25Ｌ 製作数購入 社内旋盤"]}, {"zumen": "RGH3-A101-02", "hinmei": "ｶﾞｲﾄﾞ棒", "kouteibun": "IKE(全加工）", "steps": ["IKE(全加工）"]}, {"zumen": "RGH3-A003-04", "hinmei": "１２０度台盤", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"]}, {"zumen": "RGH3-A005-01", "hinmei": "１２０度ｶﾑ", "kouteibun": "SCM４１５黒皮　Φ115Ｘ18Ｌ　製作数購入　茨城工場→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["SCM４１５黒皮 Φ115Ｘ18Ｌ 製作数購入 茨城工場", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"]}, {"zumen": "RGH3-B003-00", "hinmei": "ﾀﾞﾝﾊﾟ-ｱｰﾑ組立", "kouteibun": "RGH3-042　ダンパーアーム板（関根製作所全加工）→", "steps": ["RGH3-042 ダンパーアーム板（関根製作所全加工）"]}, {"zumen": "RGH3-A031-01", "hinmei": "120度用回転軸", "kouteibun": "Ｓ45Ｃ　Φ150Ｘ75　製作数購入　ｱｽﾞﾏ（焼きなまし）→茨城工場→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["Ｓ45Ｃ Φ150Ｘ75 製作数購入 ｱｽﾞﾏ（焼きなまし）", "茨城工場", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"]}, {"zumen": "RGH3-A032-01", "hinmei": "120度用ﾏｸﾞﾈｯﾄ取付板", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"]}, {"zumen": "RGH3-A043-00", "hinmei": "120度用ﾀﾞﾝﾊﾟ-取付台", "kouteibun": "ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」　→さくらＧＳ", "steps": ["ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」", "さくらＧＳ"]}, {"zumen": "RGH3-A033-00", "hinmei": "下部軸受", "kouteibun": "SUS304 PL Φ55Ｘ18Ｌ　　製作数購入　　茨城工場", "steps": ["SUS304 PL Φ55Ｘ18Ｌ  製作数購入  茨城工場"]}, {"zumen": "RGH3-A034-02", "hinmei": "回転ﾊﾞ-上部軸", "kouteibun": "SUS304 PL HOT四角42Ｘ42Ｘ205Ｌ　製作数購入　　アイナ（加工）→松本研磨", "steps": ["SUS304 PL HOT四角42Ｘ42Ｘ205Ｌ 製作数購入  アイナ（加工）", "松本研磨"]}, {"zumen": "RGH3-A035-01", "hinmei": "回転ﾊﾞ-下部軸", "kouteibun": "SUS304 PL Φ95Ｘ28Ｌ　　製作数購入　　　茨城工場", "steps": ["SUS304 PL Φ95Ｘ28Ｌ  製作数購入   茨城工場"]}, {"zumen": "RGH3-A105-01", "hinmei": "回転ﾊﾞ-上部軸受", "kouteibun": "SUS304 PL Φ55Ｘ35Ｌ　　製作数購入　　　茨城工場", "steps": ["SUS304 PL Φ55Ｘ35Ｌ  製作数購入   茨城工場"]}, {"zumen": "RGH3-A027-03", "hinmei": "90度台盤", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"]}, {"zumen": "RGH3-A004-00", "hinmei": "90度ｶﾑ", "kouteibun": "SCM４１５黒皮　Φ115Ｘ18Ｌ　製作数購入　茨城工場→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["SCM４１５黒皮 Φ115Ｘ18Ｌ 製作数購入 茨城工場", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"]}, {"zumen": "RGH3-B002-00", "hinmei": "ﾀﾞﾝﾊﾟ-ｱｰﾑ組立", "kouteibun": "RGH3-006ア－ム軸受　RGH3-A010-00　ダンパーアーム板（関根製作所全加工）→", "steps": ["RGH3-006ア－ム軸受 RGH3-A010-00 ダンパーアーム板（関根製作所全加工）"]}, {"zumen": "RGH3-A018-02", "hinmei": "90度用回転軸", "kouteibun": "Ｓ45Ｃ　Φ150Ｘ75　製作数購入　ｱｽﾞﾏ（焼きなまし）→茨城工場→ｱｽﾞﾏ（表面高周波焼入）→さくらＧＳ", "steps": ["Ｓ45Ｃ Φ150Ｘ75 製作数購入 ｱｽﾞﾏ（焼きなまし）", "茨城工場", "ｱｽﾞﾏ（表面高周波焼入）", "さくらＧＳ"]}, {"zumen": "RGH3-A024-01", "hinmei": "90度用ﾏｸﾞﾈｯﾄ取付板", "kouteibun": "関根製作所（全加工）", "steps": ["関根製作所（全加工）"]}, {"zumen": "RGH3-A030-00", "hinmei": "90度用ﾀﾞﾝﾊﾟ-取付台", "kouteibun": "ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」　→さくらＧＳ", "steps": ["ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」", "さくらＧＳ"]}];
-const ALL_STEPS = ["A5056 Φ35Ｘ120L  購入  社内旋盤", "IKE(全加工）", "RGH3-006ア－ム軸受 RGH3-A010-00 ダンパーアーム板（関根製作所全加工）", "RGH3-042 ダンパーアーム板（関根製作所全加工）", "SCM４１５黒皮 Φ115Ｘ18Ｌ 製作数購入 茨城工場", "SS磨 Φ25X500L   社内旋盤加工", "SSﾐｶﾞｷ Φ25Ｘ79Ｌ 製作数購入    社内旋盤", "SSﾐｶﾞｷΦ25Ｘ300Ｌ １本購入 社内旋盤", "SUS304 PL HOT四角42Ｘ42Ｘ205Ｌ 製作数購入  アイナ（加工）", "SUS304 PL Φ55Ｘ18Ｌ  製作数購入  茨城工場", "SUS304 PL Φ55Ｘ35Ｌ  製作数購入   茨城工場", "SUS304 PL Φ95Ｘ28Ｌ  製作数購入   茨城工場", "さくらＧＳ", "アイナ（全加工）", "ア－リン（加工）   「＊Ｍ45Ｘ1.5ﾀｯﾌﾟ貸出」", "ヨシザワ（全加工）", "三和ステンレス（全加工）", "合成素材（全加工）", "松本研磨", "松本研磨（バフ）", "真鍮Ｃ3604Φ100Ｘ25Ｌ 製作数購入 社内旋盤", "社内ボール盤", "社内ﾎﾞ‐ﾙ盤（Φ17ﾘ‐ﾏ）", "精光電装（アルマイト）", "茨城工場", "関根製作所支給 (RGH3-B003-00共通部品）", "関根製作所（全加工）", "ＲＧＨ3-007ｽﾌﾟﾘﾝｸﾞｱ‐ﾑ板（関根製作所全加工）", "Ｓ45Ｃ Φ150Ｘ75 製作数購入 ｱｽﾞﾏ（焼きなまし）", "ＳＳ黒皮Φ150Ｘ35Ｌ 製作数購入 茨城工場", "ｱｽﾞﾏ（表面高周波焼入）"];
+// ===================== マスタデータ =====================
+const MASTER_PARTS = [{"zumen":"RGH3-A002-00","hinmei":"取付板","steps":[{"process":"関根製作所（全加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-B001-00","hinmei":"ｽﾌﾟﾘﾝｸﾞｱｰﾑ組立","steps":[{"process":"関根製作所（全加工）","assignee":""},{"process":"ボール盤","assignee":"社内"},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-006","hinmei":"ｱｰﾑ軸受","steps":[{"process":"旋盤","assignee":"社内"},{"process":"関根製作所支給","assignee":""}]},{"zumen":"RGH3-A008-00","hinmei":"ｱ－ﾑ軸","steps":[{"process":"旋盤","assignee":"社内"},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A011-00","hinmei":"中間コロ","steps":[{"process":"合成素材（全加工）","assignee":""}]},{"zumen":"RGH3-A012-00","hinmei":"ｽﾌﾟﾘﾝｸﾞ用ﾎﾞﾙﾄ","steps":[{"process":"IKE（全加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A013-00","hinmei":"後部ｽﾌﾟﾘﾝｸﾞ保持器","steps":[{"process":"旋盤","assignee":"社内"}]},{"zumen":"RGH3-A014-00","hinmei":"前部ｽﾌﾟﾘﾝｸﾞ保持器","steps":[{"process":"合成素材（全加工）","assignee":""}]},{"zumen":"RGH3-A015-00","hinmei":"ｽﾌﾟﾘﾝｸﾞ支持台","steps":[{"process":"三和ステンレス（全加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A016-00","hinmei":"ｽﾌﾟﾘﾝｸﾞ中間軸","steps":[{"process":"ヨシザワ（全加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A017-00","hinmei":"ｽﾌﾟﾘﾝｸﾞ中間軸受け","steps":[{"process":"アイナ（全加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A019-01","hinmei":"ﾀﾞﾝﾊﾟ-先端金具","steps":[{"process":"三和ステンレス（全加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A020-00","hinmei":"中間コロ軸","steps":[{"process":"IKE（全加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A023-01","hinmei":"ﾗﾁｪｯﾄ爪","steps":[{"process":"三和ステンレス（全加工）","assignee":""},{"process":"ボール盤（Φ17リーマ）","assignee":"社内"},{"process":"アズマ（高周波焼入）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A025-00","hinmei":"ﾗﾁｪｯﾄ爪支柱","steps":[{"process":"旋盤","assignee":"社内"},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A026-00","hinmei":"ﾗﾁｪｯﾄ爪保持ﾌﾞｯｼｭ","steps":[{"process":"合成素材（全加工）","assignee":""}]},{"zumen":"RGH3-A103-01","hinmei":"ｿﾚﾉｲﾄﾞ台","steps":[{"process":"アイナ（全加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A100-02","hinmei":"ｿﾚﾉｲﾄﾞｶﾞｲﾄﾞ","steps":[{"process":"三和ステンレス（全加工）","assignee":""},{"process":"精光電装","assignee":"アルマイト"}]},{"zumen":"RGH3-A104-03","hinmei":"ｿﾚﾉｲﾄﾞﾛｯｸ金具","steps":[{"process":"アイナ（全加工）","assignee":""},{"process":"松本研磨","assignee":"バフ"}]},{"zumen":"RGH3-A102-00","hinmei":"連結金具","steps":[{"process":"関根製作所（全加工）","assignee":""}]},{"zumen":"RGH3-A049-01","hinmei":"ﾍﾞｱﾘﾝｸﾞ保持器","steps":[{"process":"茨城工場","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A050-00","hinmei":"ｽﾍﾟ-ｻ-","steps":[{"process":"旋盤","assignee":"社内"}]},{"zumen":"RGH3-A101-02","hinmei":"ｶﾞｲﾄﾞ棒","steps":[{"process":"IKE（全加工）","assignee":""}]},{"zumen":"RGH3-A003-04","hinmei":"１２０度台盤","steps":[{"process":"関根製作所（全加工）","assignee":""}]},{"zumen":"RGH3-A005-01","hinmei":"１２０度ｶﾑ","steps":[{"process":"茨城工場","assignee":""},{"process":"アズマ（高周波焼入）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-B003-00","hinmei":"ﾀﾞﾝﾊﾟ-ｱｰﾑ組立","steps":[{"process":"関根製作所（全加工）","assignee":""},{"process":"ボール盤（Φ17リーマ）","assignee":"社内"},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A031-01","hinmei":"120度用回転軸","steps":[{"process":"アズマ（焼きなまし）","assignee":""},{"process":"茨城工場","assignee":""},{"process":"アズマ（高周波焼入）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A032-01","hinmei":"120度用ﾏｸﾞﾈｯﾄ取付板","steps":[{"process":"関根製作所（全加工）","assignee":""}]},{"zumen":"RGH3-A043-00","hinmei":"120度用ﾀﾞﾝﾊﾟ-取付台","steps":[{"process":"ア－リン（加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A033-00","hinmei":"下部軸受","steps":[{"process":"茨城工場","assignee":""}]},{"zumen":"RGH3-A034-02","hinmei":"回転ﾊﾞ-上部軸","steps":[{"process":"アイナ（加工）","assignee":""},{"process":"松本研磨","assignee":"バフ"}]},{"zumen":"RGH3-A035-01","hinmei":"回転ﾊﾞ-下部軸","steps":[{"process":"茨城工場","assignee":""}]},{"zumen":"RGH3-A105-01","hinmei":"回転ﾊﾞ-上部軸受","steps":[{"process":"茨城工場","assignee":""}]},{"zumen":"RGH3-A027-03","hinmei":"90度台盤","steps":[{"process":"関根製作所（全加工）","assignee":""}]},{"zumen":"RGH3-A004-00","hinmei":"90度ｶﾑ","steps":[{"process":"茨城工場","assignee":""},{"process":"アズマ（高周波焼入）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-B002-00","hinmei":"ﾀﾞﾝﾊﾟ-ｱｰﾑ組立（90度）","steps":[{"process":"関根製作所（全加工）","assignee":""},{"process":"ボール盤（Φ17リーマ）","assignee":"社内"},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A018-02","hinmei":"90度用回転軸","steps":[{"process":"アズマ（焼きなまし）","assignee":""},{"process":"茨城工場","assignee":""},{"process":"アズマ（高周波焼入）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]},{"zumen":"RGH3-A024-01","hinmei":"90度用ﾏｸﾞﾈｯﾄ取付板","steps":[{"process":"関根製作所（全加工）","assignee":""}]},{"zumen":"RGH3-A030-00","hinmei":"90度用ﾀﾞﾝﾊﾟ-取付台","steps":[{"process":"ア－リン（加工）","assignee":""},{"process":"さくらＧＳ","assignee":"メッキ"}]}];
+
+// ピッカー用工程リスト（工程名のみのユニーク一覧）
+const PROCESS_LIST = [...new Set(MASTER_PARTS.flatMap(p=>p.steps.map(s=>s.process)))].sort();
 
 let DB = loadDB();
+let stepPickerTarget = 'oo'; // 'oo' or 'ap'
 
 function loadDB(){
-  try{
-    const s = localStorage.getItem('seizanDB');
-    if(s) return JSON.parse(s);
-  }catch(e){}
-  return {orders:[], oneoff:[], masterStatus:{}};
+  try{ const s=localStorage.getItem('seizanDB3'); if(s) return JSON.parse(s); }catch(e){}
+  return {orders:[], oneoff:[], masterStatus:{}, customParts:[]};
 }
+function saveDB(){ localStorage.setItem('seizanDB3', JSON.stringify(DB)); }
 
-function saveDB(){
-  localStorage.setItem('seizanDB', JSON.stringify(DB));
-}
-
-// ==================== ユーティリティ ====================
+// ===================== ユーティリティ =====================
 function today(){ return new Date().toISOString().split('T')[0]; }
-
-function daysLeft(deadline){
-  if(!deadline) return null;
-  const d = new Date(deadline) - new Date(today());
-  return Math.ceil(d/(1000*60*60*24));
+function daysLeft(d){ if(!d) return null; return Math.ceil((new Date(d)-new Date(today()))/(864e5)); }
+function deadlineBadge(d){
+  if(!d) return '<span class="badge badge-gray">未設定</span>';
+  const n=daysLeft(d);
+  if(n<0) return `<span class="badge badge-red">超過${Math.abs(n)}日</span>`;
+  if(n<=7) return `<span class="badge badge-orange">${n}日前</span>`;
+  return `<span class="badge badge-green">${n}日前</span>`;
 }
-
-function deadlineBadge(deadline){
-  if(!deadline) return '<span class="badge badge-gray">未設定</span>';
-  const d = daysLeft(deadline);
-  if(d < 0) return `<span class="badge badge-red">超過 ${Math.abs(d)}日</span>`;
-  if(d <= 7) return `<span class="badge badge-orange">${d}日前</span>`;
-  return `<span class="badge badge-green">${d}日前</span>`;
-}
-
 function statusBadge(pct){
-  if(pct >= 100) return '<span class="badge badge-green">完了</span>';
-  if(pct > 0)    return '<span class="badge badge-blue">進行中</span>';
+  if(pct>=100) return '<span class="badge badge-green">完了</span>';
+  if(pct>0)    return '<span class="badge badge-blue">進行中</span>';
   return '<span class="badge badge-yellow">未着手</span>';
 }
-
 function progBar(pct){
   return `<div class="prog-wrap"><div style="font-size:11px;color:#555">${Math.round(pct)}%</div>
     <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
 }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function getStClass(v){ return v==='完了'?'st-done':v==='作業中'?'st-inprog':'st-notyet'; }
 
-function calcOrderPct(order){
-  let total=0, done=0;
-  (order.items||[]).forEach(item=>{
-    (item.stepStatuses||[]).forEach(s=>{total++;if(s==='完了')done++;});
-  });
-  return total===0?0:Math.round(done/total*100);
+// 工程ステップのラベル表示（{process,assignee} または 後方互換の文字列）
+function stepLabel(s){
+  if(typeof s==='string') return s;
+  return s.assignee ? `${s.process}（${s.assignee}）` : s.process;
+}
+function stepChip(s, idx){
+  const proc = typeof s==='string' ? s : s.process;
+  const assign = typeof s==='string' ? '' : s.assignee;
+  return `<div class="step-chip">
+    <div class="chip-num">${idx+1}</div>
+    <span class="chip-proc">${proc}</span>
+    ${assign?`<span class="chip-assign">／${assign}</span>`:''}
+  </div>`;
 }
 
+function calcOrderPct(o){
+  let t=0,d=0;
+  (o.items||[]).forEach(item=>(item.stepStatuses||[]).forEach(s=>{t++;if(s==='完了')d++;}));
+  return t===0?0:Math.round(d/t*100);
+}
 function calcOneoffPct(oo){
-  const ss = oo.stepStatuses||[];
-  if(!ss.length) return 0;
+  const ss=oo.stepStatuses||[]; if(!ss.length) return 0;
   return Math.round(ss.filter(s=>s==='完了').length/ss.length*100);
 }
+function allParts(){ return [...MASTER_PARTS, ...(DB.customParts||[])]; }
 
-function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
-
-// ==================== タブ ====================
-function switchTab(name){
+// ===================== タブ =====================
+function switchTab(name, el){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  event.target.classList.add('active');
+  el.classList.add('active');
   renderAll();
 }
 
-// ==================== ダッシュボード ====================
+// ===================== ダッシュボード =====================
 function renderDashboard(){
-  const orders = DB.orders||[];
-  const oneoffs = DB.oneoff||[];
-  const allCases = [
-    ...orders.map(o=>({type:'受注',name:o.orderNo||'-',customer:o.customer,deadline:o.deadline,pct:calcOrderPct(o),id:o.id})),
-    ...oneoffs.map(o=>({type:'単発',name:o.name,customer:o.customer,deadline:o.deadline,pct:calcOneoffPct(o),id:o.id}))
+  const orders=DB.orders||[], oneoffs=DB.oneoff||[];
+  const all=[
+    ...orders.map(o=>({type:'受注',name:o.orderNo||'-',customer:o.customer,deadline:o.deadline,pct:calcOrderPct(o)})),
+    ...oneoffs.map(o=>({type:'単発',name:o.name,customer:o.customer,deadline:o.deadline,pct:calcOneoffPct(o)}))
   ];
+  let overdue=0,done=0;
+  all.forEach(c=>{const d=daysLeft(c.deadline);if(d!==null&&d<0&&c.pct<100)overdue++;if(c.pct>=100)done++;});
+  document.getElementById('d-orders').textContent=orders.length;
+  document.getElementById('d-oneoff').textContent=oneoffs.length;
+  document.getElementById('d-overdue').textContent=overdue;
+  document.getElementById('d-done').textContent=done;
 
-  let overdue=0, done=0;
-  allCases.forEach(c=>{
-    const d = daysLeft(c.deadline);
-    if(d!==null && d<0 && c.pct<100) overdue++;
-    if(c.pct>=100) done++;
-  });
-  document.getElementById('d-orders').textContent = orders.length;
-  document.getElementById('d-oneoff').textContent = oneoffs.length;
-  document.getElementById('d-overdue').textContent = overdue;
-  document.getElementById('d-done').textContent = done;
-
-  const sorted = allCases.filter(c=>c.pct<100).sort((a,b)=>{
-    const da = a.deadline||'9999', db = b.deadline||'9999';
-    return da.localeCompare(db);
-  });
-  
-  const tbody = document.getElementById('dash-tbody');
-  if(!sorted.length){
-    tbody.innerHTML='<tr><td colspan="7" class="empty-state">進行中の案件はありません</td></tr>';
-    return;
-  }
-  tbody.innerHTML = sorted.map(c=>`
-    <tr>
-      <td class="center"><span class="badge ${c.type==='受注'?'badge-blue':'badge-orange'}">${c.type}</span></td>
-      <td class="bold">${c.name}</td>
-      <td>${c.customer||'-'}</td>
-      <td class="center">${c.deadline||'-'}</td>
-      <td class="center">${deadlineBadge(c.deadline)}</td>
-      <td>${progBar(c.pct)}</td>
-      <td class="center">${statusBadge(c.pct)}</td>
-    </tr>
-  `).join('');
+  const sorted=all.filter(c=>c.pct<100).sort((a,b)=>(a.deadline||'9999').localeCompare(b.deadline||'9999'));
+  const tbody=document.getElementById('dash-tbody');
+  if(!sorted.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:#999">進行中の案件はありません</td></tr>';return;}
+  tbody.innerHTML=sorted.map(c=>`<tr>
+    <td class="center"><span class="badge ${c.type==='受注'?'badge-blue':'badge-orange'}">${c.type}</span></td>
+    <td style="font-weight:bold">${c.name}</td><td>${c.customer||'-'}</td>
+    <td class="center">${c.deadline||'-'}</td><td class="center">${deadlineBadge(c.deadline)}</td>
+    <td>${progBar(c.pct)}</td><td class="center">${statusBadge(c.pct)}</td>
+  </tr>`).join('');
 }
 
-// ==================== 受注管理 ====================
-let orderFilter = 'all';
-function setOrderFilter(f, btn){
-  orderFilter = f;
+// ===================== 受注管理 =====================
+let orderFilter='all';
+function setOrderFilter(f,btn){
+  orderFilter=f;
   document.querySelectorAll('#tab-orders .flt-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOrders();
+  btn.classList.add('active'); renderOrders();
 }
-
 function renderOrders(){
-  const tbody = document.getElementById('orders-tbody');
-  let list = DB.orders||[];
-  
-  if(orderFilter==='done') list = list.filter(o=>calcOrderPct(o)>=100);
-  else if(orderFilter==='active') list = list.filter(o=>calcOrderPct(o)<100);
-  else if(orderFilter==='overdue') list = list.filter(o=>{const d=daysLeft(o.deadline);return d!==null&&d<0&&calcOrderPct(o)<100;});
-
-  if(!list.length){
-    tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">📋</div>受注データがありません。「＋ 新規受注登録」から追加してください</div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = list.map(o=>{
-    const pct = calcOrderPct(o);
-    const itemNames = (o.items||[]).map(i=>i.hinmei||i.zumen).join('、');
+  const tbody=document.getElementById('orders-tbody');
+  let list=DB.orders||[];
+  if(orderFilter==='done') list=list.filter(o=>calcOrderPct(o)>=100);
+  else if(orderFilter==='active') list=list.filter(o=>calcOrderPct(o)<100);
+  else if(orderFilter==='overdue') list=list.filter(o=>{const d=daysLeft(o.deadline);return d!==null&&d<0&&calcOrderPct(o)<100;});
+  if(!list.length){tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">📋</div>受注データがありません</div></td></tr>';return;}
+  tbody.innerHTML=list.map(o=>{
+    const pct=calcOrderPct(o);
+    const names=(o.items||[]).map(i=>i.hinmei||i.zumen).join('、');
     return `<tr>
-      <td class="bold" style="color:#1F4E79">${o.orderNo||'-'}</td>
-      <td>${o.customer||'-'}</td>
-      <td class="center">${o.orderDate||'-'}</td>
-      <td class="center">${o.deadline||'-'}</td>
-      <td class="center">${deadlineBadge(o.deadline)}</td>
-      <td style="max-width:180px;font-size:11px">${itemNames||'-'}</td>
-      <td class="center">${o.qty||1}</td>
-      <td>${progBar(pct)}</td>
+      <td style="font-weight:bold;color:#1F4E79">${o.orderNo||'-'}</td>
+      <td>${o.customer||'-'}</td><td class="center">${o.orderDate||'-'}</td>
+      <td class="center">${o.deadline||'-'}</td><td class="center">${deadlineBadge(o.deadline)}</td>
+      <td style="max-width:160px;font-size:11px">${names||'-'}</td>
+      <td class="center">${o.qty||1}</td><td>${progBar(pct)}</td>
       <td class="center">${statusBadge(pct)}</td>
-      <td class="center">
+      <td class="center" style="white-space:nowrap">
         <button class="btn btn-sm btn-outline" onclick="openOrderDetail('${o.id}')">詳細</button>
         <button class="btn btn-sm btn-danger" onclick="deleteOrder('${o.id}')">削除</button>
       </td>
@@ -509,7 +470,6 @@ function renderOrders(){
   }).join('');
 }
 
-// 受注登録モーダル
 function openOrderModal(){
   document.getElementById('o-no').value='';
   document.getElementById('o-customer').value='';
@@ -524,268 +484,159 @@ function openOrderModal(){
 function closeOrderModal(){ document.getElementById('order-modal').classList.remove('open'); }
 
 function addOrderItem(){
-  const div = document.createElement('div');
+  const div=document.createElement('div');
   div.style.cssText='display:flex;gap:8px;margin-bottom:6px;align-items:center;background:#f7f9ff;padding:8px;border-radius:6px';
-  const opts = MASTER_PARTS.map(p=>`<option value="${p.zumen}">${p.zumen} | ${p.hinmei}</option>`).join('');
-  div.innerHTML=`<select style="flex:1" onchange="updateOrderItemHinmei(this)">${opts}</select>
+  const opts=allParts().map(p=>`<option value="${p.zumen}">${p.zumen} | ${p.hinmei}</option>`).join('');
+  div.innerHTML=`<select style="flex:1">${opts}</select>
     <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>`;
   document.getElementById('o-items').appendChild(div);
 }
 
 function saveOrder(){
-  const no = document.getElementById('o-no').value.trim();
-  if(!no){ alert('受注No.を入力してください'); return; }
-  
-  const selects = document.querySelectorAll('#o-items select');
-  const items = Array.from(selects).map(sel=>{
-    const part = MASTER_PARTS.find(p=>p.zumen===sel.value);
-    return {
-      zumen: part.zumen,
-      hinmei: part.hinmei,
-      steps: part.steps,
-      stepStatuses: part.steps.map(()=>'未着手')
-    };
+  const no=document.getElementById('o-no').value.trim();
+  if(!no){alert('受注No.を入力してください');return;}
+  const items=Array.from(document.querySelectorAll('#o-items select')).map(sel=>{
+    const part=allParts().find(p=>p.zumen===sel.value);
+    return {zumen:part.zumen,hinmei:part.hinmei,steps:part.steps,stepStatuses:part.steps.map(()=>'未着手')};
   });
-  
-  const order = {
-    id: uid(),
-    orderNo: no,
-    customer: document.getElementById('o-customer').value.trim(),
-    orderDate: document.getElementById('o-orderdate').value,
-    deadline: document.getElementById('o-deadline').value,
-    qty: parseInt(document.getElementById('o-qty').value)||1,
-    notes: document.getElementById('o-notes').value.trim(),
-    items: items
-  };
-  DB.orders.push(order);
-  saveDB();
-  closeOrderModal();
-  renderAll();
+  DB.orders.push({id:uid(),orderNo:no,customer:document.getElementById('o-customer').value.trim(),
+    orderDate:document.getElementById('o-orderdate').value,deadline:document.getElementById('o-deadline').value,
+    qty:parseInt(document.getElementById('o-qty').value)||1,notes:document.getElementById('o-notes').value.trim(),items});
+  saveDB(); closeOrderModal(); renderAll();
 }
-
 function deleteOrder(id){
-  if(!confirm('この受注を削除しますか？')) return;
-  DB.orders = DB.orders.filter(o=>o.id!==id);
-  saveDB();
-  renderAll();
+  if(!confirm('この受注を削除しますか？'))return;
+  DB.orders=DB.orders.filter(o=>o.id!==id); saveDB(); renderAll();
 }
 
-// 受注詳細モーダル
 function openOrderDetail(id){
-  const order = DB.orders.find(o=>o.id===id);
-  if(!order) return;
-  
+  const order=DB.orders.find(o=>o.id===id); if(!order) return;
   document.getElementById('od-title').textContent=`📋 受注詳細: ${order.orderNo}`;
-  document.getElementById('od-delete-btn').onclick=()=>{
-    if(confirm('削除しますか？')){ deleteOrder(id); closeDetailModal(); }
-  };
-  
-  const info = document.getElementById('od-info');
-  info.innerHTML=`
-    <div><div style="font-size:10px;color:#777">客先</div><div style="font-weight:bold">${order.customer||'-'}</div></div>
-    <div><div style="font-size:10px;color:#777">受注日</div><div>${order.orderDate||'-'}</div></div>
-    <div><div style="font-size:10px;color:#777">目標納期</div><div style="font-weight:bold">${order.deadline||'-'}</div></div>
-    <div><div style="font-size:10px;color:#777">数量</div><div>${order.qty||1} 個</div></div>
-    ${order.notes?`<div style="grid-column:1/-1"><div style="font-size:10px;color:#777">備考</div><div>${order.notes}</div></div>`:''}
-  `;
-  
-  const itemsDiv = document.getElementById('od-items');
-  itemsDiv.innerHTML = (order.items||[]).map((item,ii)=>{
-    const doneCount = item.stepStatuses.filter(s=>s==='完了').length;
-    const pct = Math.round(doneCount/item.steps.length*100);
-    return `
-    <div style="border:1.5px solid #BDD7EE;border-radius:8px;padding:10px;margin-bottom:8px">
+  document.getElementById('od-delete-btn').onclick=()=>{if(confirm('削除しますか？')){deleteOrder(id);closeDetailModal();}};
+  document.getElementById('od-info').innerHTML=`
+    <div><div style="font-size:10px;color:#777">客先</div><b>${order.customer||'-'}</b></div>
+    <div><div style="font-size:10px;color:#777">受注日</div>${order.orderDate||'-'}</div>
+    <div><div style="font-size:10px;color:#777">目標納期</div><b>${order.deadline||'-'}</b></div>
+    <div><div style="font-size:10px;color:#777">数量</div>${order.qty||1} 個</div>
+    ${order.notes?`<div style="grid-column:1/-1"><div style="font-size:10px;color:#777">備考</div>${order.notes}</div>`:''}`;
+  document.getElementById('od-items').innerHTML=(order.items||[]).map((item,ii)=>{
+    const pct=Math.round(item.stepStatuses.filter(s=>s==='完了').length/item.steps.length*100);
+    return `<div style="border:1.5px solid #BDD7EE;border-radius:8px;padding:10px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div><span style="font-weight:bold;color:#1F4E79">${item.zumen}</span>
-          <span style="margin-left:8px;color:#555">${item.hinmei}</span></div>
+        <div><b style="color:#1F4E79">${item.zumen}</b> <span style="color:#555;margin-left:6px">${item.hinmei}</span></div>
         <div>${progBar(pct)}</div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
         ${item.steps.map((step,si)=>`
-          <div style="display:flex;align-items:center;gap:5px;background:#f0f4f8;padding:5px 8px;border-radius:6px">
+          <div style="background:#f0f4f8;padding:6px 8px;border-radius:6px;display:flex;align-items:center;gap:5px">
             <span style="font-size:10px;background:#1F4E79;color:white;padding:1px 5px;border-radius:10px">${si+1}</span>
-            <span style="font-size:11px;max-width:150px">${step}</span>
+            <div style="font-size:11px">
+              <div style="font-weight:bold">${typeof step==='string'?step:step.process}</div>
+              ${(typeof step==='object'&&step.assignee)?`<div style="color:#888;font-size:10px">${step.assignee}</div>`:''}
+            </div>
             <select class="st-sel ${getStClass(item.stepStatuses[si])}"
               onchange="updateOrderItemStatus('${id}',${ii},${si},this)">
               <option ${item.stepStatuses[si]==='未着手'?'selected':''}>未着手</option>
               <option ${item.stepStatuses[si]==='作業中'?'selected':''}>作業中</option>
               <option ${item.stepStatuses[si]==='完了'?'selected':''}>完了</option>
             </select>
-          </div>
-        `).join('')}
+          </div>`).join('')}
       </div>
     </div>`;
   }).join('');
-  
   document.getElementById('order-detail-modal').classList.add('open');
 }
 function closeDetailModal(){ document.getElementById('order-detail-modal').classList.remove('open'); }
-
-function getStClass(v){
-  if(v==='完了') return 'st-done';
-  if(v==='作業中') return 'st-inprog';
-  return 'st-notyet';
+function updateOrderItemStatus(orderId,itemIdx,stepIdx,sel){
+  sel.className='st-sel '+getStClass(sel.value);
+  const o=DB.orders.find(o=>o.id===orderId);
+  o.items[itemIdx].stepStatuses[stepIdx]=sel.value;
+  saveDB(); renderOrders(); renderDashboard();
 }
 
-function updateOrderItemStatus(orderId, itemIdx, stepIdx, sel){
-  sel.className = 'st-sel '+getStClass(sel.value);
-  const order = DB.orders.find(o=>o.id===orderId);
-  order.items[itemIdx].stepStatuses[stepIdx] = sel.value;
-  saveDB();
-  renderOrders();
-  renderDashboard();
-}
-
-// ==================== 単発案件 ====================
-let oneoffFilter = 'all';
+// ===================== 単発案件 =====================
+let oneoffFilter='all';
 function setOneoffFilter(f,btn){
   oneoffFilter=f;
   document.querySelectorAll('#tab-oneoff .flt-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOneoff();
+  btn.classList.add('active'); renderOneoff();
 }
-
 function renderOneoff(){
-  const tbody = document.getElementById('oneoff-tbody');
-  let list = DB.oneoff||[];
+  const tbody=document.getElementById('oneoff-tbody');
+  let list=DB.oneoff||[];
   if(oneoffFilter==='done') list=list.filter(o=>calcOneoffPct(o)>=100);
   else if(oneoffFilter==='active') list=list.filter(o=>calcOneoffPct(o)<100);
-  
-  if(!list.length){
-    tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="icon">⚡</div>単発案件がありません。「＋ 新規単発案件登録」から追加してください</div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = list.map(oo=>{
-    const pct = calcOneoffPct(oo);
-    const stepsHtml = (oo.steps||[]).map((step,si)=>`
-      <div style="display:inline-flex;align-items:center;gap:4px;margin:2px;background:#f0f4f8;padding:3px 6px;border-radius:4px">
-        <span style="font-size:10px">${step}</span>
-        <select class="st-sel ${getStClass(oo.stepStatuses[si])}" style="width:70px;font-size:10px"
+  if(!list.length){tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">⚡</div>単発案件がありません</div></td></tr>';return;}
+  tbody.innerHTML=list.map(oo=>{
+    const pct=calcOneoffPct(oo);
+    const stepsHtml=(oo.steps||[]).map((step,si)=>`
+      <div style="display:inline-flex;align-items:center;gap:4px;margin:2px;background:#f0f4f8;border-radius:4px;padding:3px 6px">
+        <span style="font-size:9px;background:#1F4E79;color:white;padding:1px 4px;border-radius:8px">${si+1}</span>
+        <div style="font-size:11px">
+          <span style="font-weight:bold">${typeof step==='string'?step:step.process}</span>
+          ${(typeof step==='object'&&step.assignee)?`<span style="color:#888;font-size:10px"> ／${step.assignee}</span>`:''}
+        </div>
+        <select class="st-sel ${getStClass(oo.stepStatuses[si])}" style="width:70px"
           onchange="updateOneoffStatus('${oo.id}',${si},this)">
           <option ${oo.stepStatuses[si]==='未着手'?'selected':''}>未着手</option>
           <option ${oo.stepStatuses[si]==='作業中'?'selected':''}>作業中</option>
           <option ${oo.stepStatuses[si]==='完了'?'selected':''}>完了</option>
         </select>
-      </div>
-    `).join('');
+      </div>`).join('');
     return `<tr>
-      <td class="bold" style="color:#1F4E79">${oo.name}</td>
-      <td>${oo.customer||'-'}</td>
-      <td class="center">${oo.qty||1}</td>
-      <td class="center">${oo.deadline||'-'}</td>
-      <td class="center">${deadlineBadge(oo.deadline)}</td>
-      <td><div>${stepsHtml}</div>${progBar(pct)}</td>
+      <td style="font-size:11px;color:#555">${oo.zumen||'-'}</td>
+      <td style="font-weight:bold;color:#1F4E79">${oo.name}</td>
+      <td>${oo.customer||'-'}</td><td class="center">${oo.qty||1}</td>
+      <td class="center">${oo.deadline||'-'}</td><td class="center">${deadlineBadge(oo.deadline)}</td>
+      <td><div style="display:flex;flex-wrap:wrap">${stepsHtml}</div>${progBar(pct)}</td>
       <td class="center">${statusBadge(pct)}</td>
       <td style="font-size:11px;color:#666">${oo.notes||''}</td>
       <td class="center"><button class="btn btn-sm btn-danger" onclick="deleteOneoff('${oo.id}')">削除</button></td>
     </tr>`;
   }).join('');
 }
-
-function updateOneoffStatus(id, si, sel){
+function updateOneoffStatus(id,si,sel){
   sel.className='st-sel '+getStClass(sel.value);
-  const oo = DB.oneoff.find(o=>o.id===id);
-  oo.stepStatuses[si]=sel.value;
-  saveDB();
-  renderDashboard();
+  const oo=DB.oneoff.find(o=>o.id===id); oo.stepStatuses[si]=sel.value;
+  saveDB(); renderDashboard();
 }
-
 function deleteOneoff(id){
-  if(!confirm('削除しますか？')) return;
-  DB.oneoff=DB.oneoff.filter(o=>o.id!==id);
-  saveDB();
-  renderAll();
+  if(!confirm('削除しますか？'))return;
+  DB.oneoff=DB.oneoff.filter(o=>o.id!==id); saveDB(); renderAll();
 }
-
-// 単発案件モーダル
 function openOneoffModal(){
-  document.getElementById('oo-name').value='';
-  document.getElementById('oo-customer').value='';
+  ['oo-zumen','oo-name','oo-customer','oo-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('oo-qty').value=1;
   document.getElementById('oo-deadline').value='';
-  document.getElementById('oo-notes').value='';
   document.getElementById('oo-steps').innerHTML='';
   document.getElementById('oneoff-modal').classList.add('open');
 }
 function closeOneoffModal(){ document.getElementById('oneoff-modal').classList.remove('open'); }
-
-function addOneoffStepCustom(){
-  const div=document.createElement('div');
-  div.className='step-row';
-  const n=document.querySelectorAll('#oo-steps .step-row').length+1;
-  div.innerHTML=`<div class="step-num">${n}</div>
-    <input type="text" placeholder="工程名を入力 例: 溶接、メッキ処理...">
-    <button class="btn btn-sm btn-danger" onclick="removeStep(this)">✕</button>`;
-  document.getElementById('oo-steps').appendChild(div);
-  renumberSteps();
-}
-
-function addOneoffStepFromList(){
-  filterSteps('');
-  document.getElementById('step-picker-modal').classList.add('open');
-}
-
-function filterSteps(q){
-  const list = document.getElementById('step-list');
-  const filtered = ALL_STEPS.filter(s=>s.toLowerCase().includes(q.toLowerCase()));
-  list.innerHTML = filtered.map(s=>`
-    <div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px"
-      onmouseover="this.style.background='#e8f0fe'" onmouseout="this.style.background=''"
-      onclick="selectStep('${s.replace(/'/g,"\'")}')">
-      ${s}
-    </div>
-  `).join('');
-}
-
-function selectStep(step){
-  document.getElementById('step-picker-modal').classList.remove('open');
-  const div=document.createElement('div');
-  div.className='step-row';
-  div.innerHTML=`<div class="step-num">?</div>
-    <input type="text" value="${step}">
-    <button class="btn btn-sm btn-danger" onclick="removeStep(this)">✕</button>`;
-  document.getElementById('oo-steps').appendChild(div);
-  renumberSteps();
-}
-
-function removeStep(btn){ btn.parentElement.remove(); renumberSteps(); }
-function renumberSteps(){
-  document.querySelectorAll('#oo-steps .step-num').forEach((el,i)=>el.textContent=i+1);
-}
-
 function saveOneoff(){
   const name=document.getElementById('oo-name').value.trim();
-  if(!name){ alert('案件名を入力してください'); return; }
-  const steps=Array.from(document.querySelectorAll('#oo-steps .step-row input'))
-    .map(i=>i.value.trim()).filter(Boolean);
-  const oo={
-    id:uid(), name, 
+  if(!name){alert('案件名を入力してください');return;}
+  const steps=collectSteps('oo-steps');
+  const oo={id:uid(),zumen:document.getElementById('oo-zumen').value.trim(),name,
     customer:document.getElementById('oo-customer').value.trim(),
     qty:parseInt(document.getElementById('oo-qty').value)||1,
     deadline:document.getElementById('oo-deadline').value,
     notes:document.getElementById('oo-notes').value.trim(),
-    steps, stepStatuses:steps.map(()=>'未着手')
-  };
-  DB.oneoff.push(oo);
-  saveDB();
-  closeOneoffModal();
-  renderAll();
+    steps, stepStatuses:steps.map(()=>'未着手')};
+  DB.oneoff.push(oo); saveDB(); closeOneoffModal(); renderAll();
 }
 
-// ==================== 工程マスタ ====================
+// ===================== 工程マスタ =====================
 let masterFilter='all';
 function setMasterFilter(f,btn){
   masterFilter=f;
   document.querySelectorAll('#tab-master .flt-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderMaster();
+  btn.classList.add('active'); renderMaster();
 }
-
 function renderMaster(){
   if(!DB.masterStatus) DB.masterStatus={};
   const tbody=document.getElementById('master-tbody');
-  let list=MASTER_PARTS;
-  
+  const custom=DB.customParts||[];
+  let list=[...MASTER_PARTS.map(p=>({...p,isCustom:false})),...custom.map(p=>({...p,isCustom:true}))];
   if(masterFilter==='done') list=list.filter(p=>{
     const ss=p.steps.map((_,si)=>DB.masterStatus[p.zumen+'_'+si]||'未着手');
     return ss.every(s=>s==='完了');
@@ -794,41 +645,118 @@ function renderMaster(){
     const ss=p.steps.map((_,si)=>DB.masterStatus[p.zumen+'_'+si]||'未着手');
     return !ss.every(s=>s==='完了');
   });
+  else if(masterFilter==='custom') list=list.filter(p=>p.isCustom);
 
-  tbody.innerHTML=list.map((p,ri)=>{
-    const MAX=4;
-    let html=`<td style="font-weight:bold;color:#1F4E79;white-space:nowrap;font-size:11px">${p.zumen}</td>
-              <td style="font-size:11px">${p.hinmei}</td>`;
-    let zansu=0;
+  if(!list.length){tbody.innerHTML='<tr><td colspan="12"><div class="empty-state">該当する品番がありません</div></td></tr>';return;}
+  tbody.innerHTML=list.map(p=>{
+    const MAX=4; let zansu=0;
+    let html=`<td style="font-weight:bold;color:#1F4E79;white-space:nowrap;font-size:11px">
+      ${p.zumen}${p.isCustom?'<span class="custom-tag">追加</span>':''}
+    </td><td style="font-size:11px">${p.hinmei}</td>`;
     for(let si=0;si<MAX;si++){
       if(si<p.steps.length){
-        const key=p.zumen+'_'+si;
-        const val=DB.masterStatus[key]||'未着手';
+        const key=p.zumen+'_'+si, val=DB.masterStatus[key]||'未着手';
         if(val!=='完了') zansu++;
-        html+=`<td style="background:#EBF3FB;font-size:11px">${p.steps[si]}</td>
-               <td><select class="st-sel ${getStClass(val)}" style="width:78px"
-                 onchange="updateMasterStatus('${p.zumen}',${si},this)">
-                 <option ${val==='未着手'?'selected':''}>未着手</option>
-                 <option ${val==='作業中'?'selected':''}>作業中</option>
-                 <option ${val==='完了'?'selected':''}>完了</option>
-               </select></td>`;
+        const s=p.steps[si];
+        const proc=typeof s==='string'?s:s.process;
+        const assign=typeof s==='object'?s.assignee:'';
+        html+=`<td style="background:#EBF3FB;font-size:11px">
+          <div style="font-weight:bold">${proc}</div>
+          ${assign?`<div style="font-size:10px;color:#777">${assign}</div>`:''}
+        </td>
+        <td><select class="st-sel ${getStClass(val)}" style="width:76px"
+          onchange="updateMasterStatus('${p.zumen}',${si},this)">
+          <option ${val==='未着手'?'selected':''}>未着手</option>
+          <option ${val==='作業中'?'selected':''}>作業中</option>
+          <option ${val==='完了'?'selected':''}>完了</option>
+        </select></td>`;
       } else {
-        html+='<td style="background:#f5f5f5;color:#ccc;text-align:center;font-size:11px">-</td><td style="background:#f5f5f5"></td>';
+        html+='<td style="background:#f5f5f5;color:#ccc;text-align:center;font-size:10px">-</td><td style="background:#f5f5f5"></td>';
       }
     }
     html+=`<td style="text-align:center;font-size:15px;font-weight:bold;color:${zansu===0?'#70AD47':'#FF6B6B'}">${zansu}</td>`;
+    html+=`<td class="center">${p.isCustom?`<button class="btn btn-sm btn-danger" onclick="deleteCustomPart('${p.zumen}')">削除</button>`:''}`;
     return `<tr>${html}</tr>`;
   }).join('');
 }
-
 function updateMasterStatus(zumen,si,sel){
   sel.className='st-sel '+getStClass(sel.value);
   if(!DB.masterStatus) DB.masterStatus={};
-  DB.masterStatus[zumen+'_'+si]=sel.value;
+  DB.masterStatus[zumen+'_'+si]=sel.value; saveDB();
+}
+function openAddPartModal(){
+  document.getElementById('ap-zumen').value='';
+  document.getElementById('ap-hinmei').value='';
+  document.getElementById('ap-steps').innerHTML='';
+  document.getElementById('addpart-modal').classList.add('open');
+}
+function saveAddPart(){
+  const zumen=document.getElementById('ap-zumen').value.trim();
+  const hinmei=document.getElementById('ap-hinmei').value.trim();
+  if(!zumen||!hinmei){alert('図番と品名を入力してください');return;}
+  const steps=collectSteps('ap-steps');
+  if(!DB.customParts) DB.customParts=[];
+  DB.customParts.push({zumen,hinmei,steps});
   saveDB();
+  document.getElementById('addpart-modal').classList.remove('open');
+  renderMaster();
+}
+function deleteCustomPart(zumen){
+  if(!confirm('この品番を削除しますか？'))return;
+  DB.customParts=(DB.customParts||[]).filter(p=>p.zumen!==zumen);
+  saveDB(); renderMaster();
 }
 
-// ==================== データ出力 ====================
+// ===================== 工程ステップ共通 =====================
+function addStepRow(containerId, processVal, assigneeVal){
+  const container=document.getElementById(containerId);
+  const n=container.querySelectorAll('.step-row').length+1;
+  const div=document.createElement('div');
+  div.className='step-row';
+  div.innerHTML=`<div class="step-num">${n}</div>
+    <input type="text" class="step-process" placeholder="旋盤・フライス・メッキ等" value="${processVal}">
+    <span class="step-sep">／</span>
+    <input type="text" class="step-assignee" placeholder="社内 or 業者名（任意）" value="${assigneeVal}">
+    <button class="btn btn-sm btn-danger" onclick="removeStepRow(this)">✕</button>`;
+  container.appendChild(div);
+  renumberStepRows(container);
+}
+function removeStepRow(btn){ const container=btn.closest('.steps-editor'); btn.parentElement.remove(); renumberStepRows(container); }
+function renumberStepRows(container){ container.querySelectorAll('.step-num').forEach((el,i)=>el.textContent=i+1); }
+function collectSteps(containerId){
+  return Array.from(document.querySelectorAll(`#${containerId} .step-row`)).map(row=>({
+    process: row.querySelector('.step-process').value.trim(),
+    assignee: row.querySelector('.step-assignee').value.trim()
+  })).filter(s=>s.process);
+}
+
+// 工程ピッカー
+function openStepPicker(target){
+  stepPickerTarget=target;
+  document.getElementById('step-search').value='';
+  filterSteps('');
+  document.getElementById('step-picker-modal').classList.add('open');
+}
+function filterSteps(q){
+  const list=document.getElementById('step-list');
+  const filtered=PROCESS_LIST.filter(s=>s.toLowerCase().includes(q.toLowerCase()));
+  list.innerHTML=filtered.map(s=>`
+    <div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;justify-content:space-between;align-items:center"
+      onmouseover="this.style.background='#e8f0fe'" onmouseout="this.style.background=''"
+      onclick="selectProcessFromPicker(${JSON.stringify(s)})">
+      <span>${s}</span>
+      <span style="font-size:10px;color:#aaa">クリックして追加</span>
+    </div>`).join('');
+}
+function selectProcessFromPicker(proc){
+  document.getElementById('step-picker-modal').classList.remove('open');
+  addStepRow(stepPickerTarget+'-steps', proc, '');
+  // 追加した行のassigneeにフォーカス
+  const rows=document.querySelectorAll(`#${stepPickerTarget}-steps .step-row`);
+  if(rows.length) rows[rows.length-1].querySelector('.step-assignee').focus();
+}
+
+// ===================== データ出力 =====================
 function exportData(){
   const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
   const a=document.createElement('a');
@@ -837,19 +765,10 @@ function exportData(){
   a.click();
 }
 
-// ==================== 初期化 ====================
-function renderAll(){
-  renderDashboard();
-  renderOrders();
-  renderOneoff();
-  renderMaster();
-}
-
-// 日付表示
+// ===================== 初期化 =====================
+function renderAll(){ renderDashboard(); renderOrders(); renderOneoff(); renderMaster(); }
 const now=new Date();
-document.getElementById('hdr-date').textContent=
-  `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
-
+document.getElementById('hdr-date').textContent=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
 renderAll();
 </script>
 </body>
