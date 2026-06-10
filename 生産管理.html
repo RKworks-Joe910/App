@@ -200,6 +200,15 @@ select.st-notyet{background:#FFD966;color:#7F6000}
 <!-- 工程マスタ -->
 <div id="tab-master" class="tab-content">
   <div class="page" style="padding-top:14px">
+
+    <!-- グループタブ -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <span style="font-size:11px;color:#555;font-weight:bold;white-space:nowrap">会社グループ:</span>
+      <div id="group-tabs" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
+      <button class="btn btn-sm btn-outline" onclick="openGroupModal()" style="white-space:nowrap">⚙ グループ管理</button>
+    </div>
+
+    <!-- 状態フィルター -->
     <div class="toolbar">
       <div class="filter-bar" style="margin-bottom:0">
         <div class="flt-btn active" onclick="setMasterFilter('all',this)">すべて</div>
@@ -209,14 +218,15 @@ select.st-notyet{background:#FFD966;color:#7F6000}
       </div>
       <button class="btn btn-primary" onclick="openAddPartModal()">＋ 品番追加</button>
     </div>
+
     <div class="tbl-wrap">
     <table>
-      <thead><tr><th>図番</th><th>品名</th>
+      <thead><tr><th>図番</th><th>品名</th><th>グループ</th>
         <th colspan="2">工程1</th><th colspan="2">工程2</th>
         <th colspan="2">工程3</th><th colspan="2">工程4</th>
         <th>注残</th><th>操作</th></tr>
         <tr style="background:#2E75B6">
-          <th></th><th></th>
+          <th></th><th></th><th></th>
           <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
           <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
           <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
@@ -335,6 +345,29 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   </div>
 </div></div>
 
+<!-- グループ管理モーダル -->
+<div class="modal-bg" id="group-modal">
+<div class="modal" style="width:min(480px,95vw)">
+  <h2>⚙ 会社グループ管理</h2>
+  <p style="font-size:12px;color:#666;margin-bottom:12px">工程マスタを会社・部門ごとにフォルダ分けできます</p>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <input type="text" id="new-group-name" placeholder="グループ名（例: A社、B社、部品加工...）" style="flex:1">
+    <select id="new-group-color" style="width:90px">
+      <option value="#2E75B6">🔵 青</option>
+      <option value="#70AD47">🟢 緑</option>
+      <option value="#ED7D31">🟠 橙</option>
+      <option value="#FF6B6B">🔴 赤</option>
+      <option value="#7030A0">🟣 紫</option>
+      <option value="#00B0F0">🩵 水色</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="addGroup()">追加</button>
+  </div>
+  <div id="group-list" style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;min-height:40px"></div>
+  <div class="form-actions">
+    <button class="btn" onclick="document.getElementById('group-modal').classList.remove('open')" style="background:#eee">閉じる</button>
+  </div>
+</div></div>
+
 <!-- 品番追加モーダル -->
 <div class="modal-bg" id="addpart-modal">
 <div class="modal">
@@ -342,6 +375,7 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   <div class="form-grid">
     <div><label>図番 *</label><input type="text" id="ap-zumen" placeholder="例: RGH3-X001-00"></div>
     <div><label>品名 *</label><input type="text" id="ap-hinmei" placeholder="例: 特注ブラケット"></div>
+    <div class="form-full"><label>会社グループ</label><select id="ap-group"><option value="">未分類（グループなし）</option></select></div>
   </div>
   <div style="margin-top:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -388,8 +422,9 @@ let stepPickerTarget = 'oo'; // 'oo' or 'ap'
 
 function loadDB(){
   try{ const s=localStorage.getItem('seizanDB3'); if(s) return JSON.parse(s); }catch(e){}
-  return {orders:[], oneoff:[], masterStatus:{}, customParts:[]};
+  return {orders:[], oneoff:[], masterStatus:{}, customParts:[], groups:[]};
 }
+function ensureGroups(){ if(!DB.groups) DB.groups=[]; }
 function saveDB(){ localStorage.setItem('seizanDB3', JSON.stringify(DB)); }
 
 // ===================== ユーティリティ =====================
@@ -703,15 +738,26 @@ function saveOneoffDetail(){
 function registerOneoffToMaster(){
   const oo=DB.oneoff.find(o=>o.id===currentOneoffId); if(!oo) return;
   if(!oo.steps||!oo.steps.length){ alert('工程が登録されていません'); return; }
+  ensureGroups();
   if(!DB.customParts) DB.customParts=[];
   const zumen=oo.zumen||oo.id;
   if([...MASTER_PARTS,...DB.customParts].some(p=>p.zumen===zumen)){
     if(!confirm(`図番「${zumen}」は既にマスタに存在します。上書きしますか？`)) return;
     DB.customParts=DB.customParts.filter(p=>p.zumen!==zumen);
   }
-  DB.customParts.push({zumen, hinmei:oo.name, steps:oo.steps});
+  // グループを選択させる
+  let group='';
+  if(DB.groups.length){
+    const opts = DB.groups.map((g,i)=>`${i+1}: ${g.name}`).join('\n');
+    const ans = prompt(`登録するグループを番号で選択してください（空白=未分類）:\n${opts}`);
+    if(ans){
+      const idx=parseInt(ans)-1;
+      if(DB.groups[idx]) group=DB.groups[idx].name;
+    }
+  }
+  DB.customParts.push({zumen, hinmei:oo.name, steps:oo.steps, group});
   saveDB();
-  alert(`「${oo.name}」を工程マスタに登録しました`);
+  alert(`「${oo.name}」を工程マスタ${group?`（${group}）`:'（未分類）'}に登録しました`);
   renderMaster();
 }
 function openOneoffModal(){
@@ -735,6 +781,93 @@ function saveOneoff(){
   DB.oneoff.push(oo); saveDB(); closeOneoffModal(); renderAll();
 }
 
+// ===================== グループ管理 =====================
+let currentGroupFilter = '__all__'; // '__all__' or group name
+
+function openGroupModal(){
+  ensureGroups();
+  renderGroupList();
+  document.getElementById('group-modal').classList.add('open');
+}
+
+function renderGroupList(){
+  const list = document.getElementById('group-list');
+  if(!DB.groups.length){
+    list.innerHTML='<div style="padding:16px;text-align:center;color:#aaa;font-size:12px">グループがありません。上から追加してください</div>';
+    return;
+  }
+  list.innerHTML = DB.groups.map(g=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f0f0f0">
+      <div style="width:14px;height:14px;border-radius:50%;background:${g.color};flex-shrink:0"></div>
+      <span style="flex:1;font-size:12px;font-weight:bold">${g.name}</span>
+      <span style="font-size:11px;color:#aaa">${countPartsInGroup(g.name)}品番</span>
+      <button class="btn btn-sm btn-danger" onclick="deleteGroup('${g.name}')">削除</button>
+    </div>`).join('');
+}
+
+function countPartsInGroup(name){
+  return (DB.customParts||[]).filter(p=>p.group===name).length;
+}
+
+function addGroup(){
+  ensureGroups();
+  const name = document.getElementById('new-group-name').value.trim();
+  if(!name){alert('グループ名を入力してください');return;}
+  if(DB.groups.some(g=>g.name===name)){alert('同じ名前のグループが既にあります');return;}
+  const color = document.getElementById('new-group-color').value;
+  DB.groups.push({name, color});
+  saveDB();
+  document.getElementById('new-group-name').value='';
+  renderGroupList();
+  renderGroupTabs();
+}
+
+function deleteGroup(name){
+  if(!confirm(`グループ「${name}」を削除しますか？\n（このグループの品番は「未分類」になります）`))return;
+  DB.groups = DB.groups.filter(g=>g.name!==name);
+  (DB.customParts||[]).forEach(p=>{ if(p.group===name) p.group=''; });
+  saveDB();
+  if(currentGroupFilter===name) currentGroupFilter='__all__';
+  renderGroupList();
+  renderGroupTabs();
+  renderMaster();
+}
+
+function renderGroupTabs(){
+  ensureGroups();
+  const container = document.getElementById('group-tabs');
+  const tabs = [
+    {label:'全グループ', value:'__all__'},
+    ...DB.groups.map(g=>({label:g.name, value:g.name, color:g.color})),
+    {label:'未分類', value:'__none__'}
+  ];
+  container.innerHTML = tabs.map(t=>{
+    const isActive = currentGroupFilter===t.value;
+    const dot = t.color ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${t.color};margin-right:4px"></span>` : '';
+    return `<button class="flt-btn${isActive?' active':''}" style="${isActive&&t.color?`background:${t.color};border-color:${t.color}`:''}font-size:11px;padding:4px 10px"
+      onclick="setGroupFilter('${t.value}',this)">${dot}${t.label}</button>`;
+  }).join('');
+}
+
+function setGroupFilter(val, btn){
+  currentGroupFilter = val;
+  renderGroupTabs();
+  renderMaster();
+}
+
+function getGroupColor(name){
+  ensureGroups();
+  const g = DB.groups.find(g=>g.name===name);
+  return g ? g.color : '#aaa';
+}
+
+function groupBadge(group){
+  if(!group) return '<span style="font-size:10px;color:#bbb">未分類</span>';
+  const color = getGroupColor(group);
+  return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:bold;color:${color}">
+    <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block"></span>${group}</span>`;
+}
+
 // ===================== 工程マスタ =====================
 let masterFilter='all';
 function setMasterFilter(f,btn){
@@ -742,11 +875,21 @@ function setMasterFilter(f,btn){
   document.querySelectorAll('#tab-master .flt-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active'); renderMaster();
 }
+
 function renderMaster(){
   if(!DB.masterStatus) DB.masterStatus={};
+  ensureGroups();
+  renderGroupTabs();
+
   const tbody=document.getElementById('master-tbody');
   const custom=DB.customParts||[];
-  let list=[...MASTER_PARTS.map(p=>({...p,isCustom:false})),...custom.map(p=>({...p,isCustom:true}))];
+  let list=[...MASTER_PARTS.map(p=>({...p,isCustom:false,group:''})),...custom.map(p=>({...p,isCustom:true}))];
+
+  // グループフィルター
+  if(currentGroupFilter==='__none__') list=list.filter(p=>!p.group);
+  else if(currentGroupFilter!=='__all__') list=list.filter(p=>p.group===currentGroupFilter);
+
+  // 状態フィルター
   if(masterFilter==='done') list=list.filter(p=>{
     const ss=p.steps.map((_,si)=>DB.masterStatus[p.zumen+'_'+si]||'未着手');
     return ss.every(s=>s==='完了');
@@ -757,12 +900,13 @@ function renderMaster(){
   });
   else if(masterFilter==='custom') list=list.filter(p=>p.isCustom);
 
-  if(!list.length){tbody.innerHTML='<tr><td colspan="12"><div class="empty-state">該当する品番がありません</div></td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="14"><div class="empty-state">該当する品番がありません</div></td></tr>';return;}
   tbody.innerHTML=list.map(p=>{
     const MAX=4; let zansu=0;
     let html=`<td style="font-weight:bold;color:#1F4E79;white-space:nowrap;font-size:11px">
       ${p.zumen}${p.isCustom?'<span class="custom-tag">追加</span>':''}
-    </td><td style="font-size:11px">${p.hinmei}</td>`;
+    </td><td style="font-size:11px">${p.hinmei}</td>
+    <td style="text-align:center">${groupBadge(p.group)}</td>`;
     for(let si=0;si<MAX;si++){
       if(si<p.steps.length){
         const key=p.zumen+'_'+si, val=DB.masterStatus[key]||'未着手';
@@ -785,32 +929,54 @@ function renderMaster(){
       }
     }
     html+=`<td style="text-align:center;font-size:15px;font-weight:bold;color:${zansu===0?'#70AD47':'#FF6B6B'}">${zansu}</td>`;
-    html+=`<td class="center">${p.isCustom?`<button class="btn btn-sm btn-danger" onclick="deleteCustomPart('${p.zumen}')">削除</button>`:''}`;
+    const editGrpSel = p.isCustom ? `<select onchange="changePartGroup('${p.zumen}',this)" style="font-size:10px;padding:2px;border-radius:4px;border:1px solid #ccc;margin-bottom:3px;width:100%">
+      <option value="">未分類</option>
+      ${DB.groups.map(g=>`<option value="${g.name}" ${p.group===g.name?'selected':''}>${g.name}</option>`).join('')}
+    </select>` : '';
+    html+=`<td class="center" style="min-width:80px">${editGrpSel}${p.isCustom?`<button class="btn btn-sm btn-danger" onclick="deleteCustomPart('${p.zumen}')">削除</button>`:''}`;
     return `<tr>${html}</tr>`;
   }).join('');
 }
+
+function changePartGroup(zumen, sel){
+  const part = (DB.customParts||[]).find(p=>p.zumen===zumen);
+  if(part){ part.group=sel.value; saveDB(); renderGroupTabs(); }
+}
+
 function updateMasterStatus(zumen,si,sel){
   sel.className='st-sel '+getStClass(sel.value);
   if(!DB.masterStatus) DB.masterStatus={};
   DB.masterStatus[zumen+'_'+si]=sel.value; saveDB();
 }
+
 function openAddPartModal(){
+  ensureGroups();
   document.getElementById('ap-zumen').value='';
   document.getElementById('ap-hinmei').value='';
   document.getElementById('ap-steps').innerHTML='';
+  // グループセレクト更新
+  const sel = document.getElementById('ap-group');
+  sel.innerHTML='<option value="">未分類（グループなし）</option>'+DB.groups.map(g=>`<option value="${g.name}">${g.name}</option>`).join('');
+  // 現在フィルター中のグループを初期選択
+  if(currentGroupFilter!=='__all__'&&currentGroupFilter!=='__none__'){
+    sel.value=currentGroupFilter;
+  }
   document.getElementById('addpart-modal').classList.add('open');
 }
+
 function saveAddPart(){
   const zumen=document.getElementById('ap-zumen').value.trim();
   const hinmei=document.getElementById('ap-hinmei').value.trim();
   if(!zumen||!hinmei){alert('図番と品名を入力してください');return;}
   const steps=collectSteps('ap-steps');
+  const group=document.getElementById('ap-group').value;
   if(!DB.customParts) DB.customParts=[];
-  DB.customParts.push({zumen,hinmei,steps});
+  DB.customParts.push({zumen,hinmei,steps,group});
   saveDB();
   document.getElementById('addpart-modal').classList.remove('open');
   renderMaster();
 }
+
 function deleteCustomPart(zumen){
   if(!confirm('この品番を削除しますか？'))return;
   DB.customParts=(DB.customParts||[]).filter(p=>p.zumen!==zumen);
