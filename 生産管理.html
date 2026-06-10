@@ -29,7 +29,7 @@ header h1{font-size:18px;letter-spacing:1px}
 
 .tbl-wrap{overflow-x:auto;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden}
-thead{background:#1F4E79;color:white;position:sticky;top:42px;z-index:5}
+thead{background:#1F4E79;color:white;}
 thead th{padding:9px 8px;text-align:center;white-space:nowrap;font-size:12px}
 tbody tr:nth-child(even){background:#f7f9ff}
 tbody tr:hover{background:#e8f0fe}
@@ -296,6 +296,42 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   <div class="form-actions">
     <button class="btn" onclick="closeOneoffModal()" style="background:#eee">キャンセル</button>
     <button class="btn btn-primary" onclick="saveOneoff()">💾 登録</button>
+  </div>
+</div></div>
+
+<!-- 単発案件 詳細/編集モーダル -->
+<div class="modal-bg" id="oneoff-detail-modal">
+<div class="modal" style="width:min(820px,95vw)">
+  <h2 id="ood-title">⚡ 単発案件詳細</h2>
+  <div id="ood-info" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;background:#f0f4f8;padding:10px;border-radius:8px;font-size:12px"></div>
+
+  <!-- 現在の工程と進捗 -->
+  <div style="margin-bottom:14px">
+    <div style="font-weight:bold;font-size:12px;color:#1F4E79;margin-bottom:6px">工程進捗（クリックで状態変更）</div>
+    <div id="ood-steps-status" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+  </div>
+
+  <!-- 工程追加エディタ -->
+  <div style="border-top:1.5px solid #e0e8f0;padding-top:12px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-weight:bold;font-size:12px;color:#555">工程を追加</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-outline" onclick="openStepPicker('ood')">📋 既存から選ぶ</button>
+        <button class="btn btn-sm btn-outline" onclick="addStepRow('ood-steps','','')">＋ 手入力</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.5fr 1fr auto;gap:4px;margin-bottom:4px;padding:0 6px">
+      <span style="font-size:10px;color:#888">工程名</span>
+      <span style="font-size:10px;color:#888">担当／業者名</span>
+      <span></span>
+    </div>
+    <div id="ood-steps" class="steps-editor" style="min-height:36px"></div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn" onclick="closeOneoffDetail()" style="background:#eee">閉じる</button>
+    <button class="btn btn-outline" onclick="registerOneoffToMaster()" style="border-color:#ED7D31;color:#ED7D31">🔧 工程マスタに登録</button>
+    <button class="btn btn-primary" onclick="saveOneoffDetail()">💾 工程追加を保存</button>
   </div>
 </div></div>
 
@@ -591,7 +627,10 @@ function renderOneoff(){
       <td><div style="display:flex;flex-wrap:wrap">${stepsHtml}</div>${progBar(pct)}</td>
       <td class="center">${statusBadge(pct)}</td>
       <td style="font-size:11px;color:#666">${oo.notes||''}</td>
-      <td class="center"><button class="btn btn-sm btn-danger" onclick="deleteOneoff('${oo.id}')">削除</button></td>
+      <td class="center" style="white-space:nowrap">
+        <button class="btn btn-sm btn-outline" onclick="openOneoffDetail('${oo.id}')">詳細</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteOneoff('${oo.id}')">削除</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -603,6 +642,77 @@ function updateOneoffStatus(id,si,sel){
 function deleteOneoff(id){
   if(!confirm('削除しますか？'))return;
   DB.oneoff=DB.oneoff.filter(o=>o.id!==id); saveDB(); renderAll();
+}
+
+let currentOneoffId = null;
+function openOneoffDetail(id){
+  const oo=DB.oneoff.find(o=>o.id===id); if(!oo) return;
+  currentOneoffId=id;
+  document.getElementById('ood-title').textContent=`⚡ ${oo.name}`;
+  document.getElementById('ood-info').innerHTML=`
+    <div><div style="font-size:10px;color:#777">図番</div><b>${oo.zumen||'-'}</b></div>
+    <div><div style="font-size:10px;color:#777">客先</div>${oo.customer||'-'}</div>
+    <div><div style="font-size:10px;color:#777">数量</div>${oo.qty||1} 個</div>
+    <div><div style="font-size:10px;color:#777">目標納期</div><b>${oo.deadline||'-'}</b> ${deadlineBadge(oo.deadline)}</div>
+    ${oo.notes?`<div style="grid-column:1/-1"><div style="font-size:10px;color:#777">備考</div>${oo.notes}</div>`:''}`;
+
+  // 既存工程のステータスUI
+  const stDiv=document.getElementById('ood-steps-status');
+  stDiv.innerHTML=(oo.steps||[]).length===0
+    ? '<div style="color:#aaa;font-size:12px">工程が登録されていません。下の「工程を追加」から追加してください。</div>'
+    : (oo.steps||[]).map((step,si)=>`
+      <div style="background:#EBF3FB;border:1px solid #BDD7EE;border-radius:8px;padding:8px 10px;min-width:160px">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:5px">
+          <span style="font-size:9px;background:#1F4E79;color:white;padding:1px 5px;border-radius:8px">${si+1}</span>
+          <b style="font-size:11px">${typeof step==='string'?step:step.process}</b>
+        </div>
+        ${(typeof step==='object'&&step.assignee)?`<div style="font-size:10px;color:#666;margin-bottom:5px">担当: ${step.assignee}</div>`:''}
+        <select class="st-sel ${getStClass(oo.stepStatuses[si])}" style="width:100%"
+          onchange="updateOneoffStatusFromDetail('${id}',${si},this)">
+          <option ${oo.stepStatuses[si]==='未着手'?'selected':''}>未着手</option>
+          <option ${oo.stepStatuses[si]==='作業中'?'selected':''}>作業中</option>
+          <option ${oo.stepStatuses[si]==='完了'?'selected':''}>完了</option>
+        </select>
+      </div>`).join('');
+
+  // 追加用エディタをリセット
+  document.getElementById('ood-steps').innerHTML='';
+  document.getElementById('oneoff-detail-modal').classList.add('open');
+}
+function closeOneoffDetail(){ document.getElementById('oneoff-detail-modal').classList.remove('open'); currentOneoffId=null; }
+
+function updateOneoffStatusFromDetail(id,si,sel){
+  sel.className='st-sel '+getStClass(sel.value);
+  const oo=DB.oneoff.find(o=>o.id===id);
+  oo.stepStatuses[si]=sel.value;
+  saveDB(); renderOneoff(); renderDashboard();
+}
+
+function saveOneoffDetail(){
+  const oo=DB.oneoff.find(o=>o.id===currentOneoffId); if(!oo) return;
+  const newSteps=collectSteps('ood-steps');
+  if(!newSteps.length){ alert('追加する工程がありません'); return; }
+  oo.steps=[...oo.steps,...newSteps];
+  oo.stepStatuses=[...oo.stepStatuses,...newSteps.map(()=>'未着手')];
+  saveDB();
+  // モーダル内の表示を更新
+  openOneoffDetail(currentOneoffId);
+  renderOneoff();
+}
+
+function registerOneoffToMaster(){
+  const oo=DB.oneoff.find(o=>o.id===currentOneoffId); if(!oo) return;
+  if(!oo.steps||!oo.steps.length){ alert('工程が登録されていません'); return; }
+  if(!DB.customParts) DB.customParts=[];
+  const zumen=oo.zumen||oo.id;
+  if([...MASTER_PARTS,...DB.customParts].some(p=>p.zumen===zumen)){
+    if(!confirm(`図番「${zumen}」は既にマスタに存在します。上書きしますか？`)) return;
+    DB.customParts=DB.customParts.filter(p=>p.zumen!==zumen);
+  }
+  DB.customParts.push({zumen, hinmei:oo.name, steps:oo.steps});
+  saveDB();
+  alert(`「${oo.name}」を工程マスタに登録しました`);
+  renderMaster();
 }
 function openOneoffModal(){
   ['oo-zumen','oo-name','oo-customer','oo-notes'].forEach(id=>document.getElementById(id).value='');
