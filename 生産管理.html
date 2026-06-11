@@ -954,6 +954,7 @@ function updateMasterStatus(zumen,si,sel){
 
 let apEditMode = false; // false=新規追加, true=編集
 let apEditIsCustom = false;
+let apOriginalZumen = ''; // 編集時の元図番（リネーム検出用）
 
 function openAddPartModal(){
   ensureGroups();
@@ -985,10 +986,22 @@ function openEditPartModal(zumen, isCustom){
   }
   if(!part) return;
 
+  apOriginalZumen = zumen;
   document.getElementById('ap-modal-title').textContent = `✏ 編集: ${part.zumen}`;
   document.getElementById('ap-save-btn').textContent = '💾 変更を保存';
-  document.getElementById('ap-zumen').value = part.zumen;
-  document.getElementById('ap-zumen').readOnly = true; // 図番は変更不可
+
+  const zumenInput = document.getElementById('ap-zumen');
+  zumenInput.value = part.zumen;
+  if(isCustom){
+    zumenInput.readOnly = false;
+    zumenInput.style.background = '';
+    zumenInput.title = '';
+  } else {
+    // 標準品番は図番がシステムキーのため変更不可
+    zumenInput.readOnly = true;
+    zumenInput.style.background = '#f0f0f0';
+    zumenInput.title = '標準品番の図番は変更できません';
+  }
   document.getElementById('ap-hinmei').value = part.hinmei||'';
 
   // グループセレクト
@@ -1016,9 +1029,22 @@ function saveAddPart(){
 
   if(apEditMode){
     if(apEditIsCustom){
-      // カスタム品番の更新
-      const part=(DB.customParts||[]).find(p=>p.zumen===zumen);
-      if(part){ part.hinmei=hinmei; part.steps=steps; part.group=group; }
+      // カスタム品番の更新（図番変更対応）
+      const idx=(DB.customParts||[]).findIndex(p=>p.zumen===apOriginalZumen);
+      if(idx>=0){
+        // 図番が変わった場合、他と重複していないかチェック
+        if(zumen !== apOriginalZumen && allParts().some(p=>p.zumen===zumen && p.zumen!==apOriginalZumen)){
+          alert(`図番「${zumen}」は既に使われています`); return;
+        }
+        DB.customParts[idx] = {zumen, hinmei, steps, group};
+        // masterStatusのキーも移行
+        if(zumen !== apOriginalZumen){
+          for(let si=0; si<steps.length; si++){
+            const oldKey=apOriginalZumen+'_'+si, newKey=zumen+'_'+si;
+            if(DB.masterStatus[oldKey]){ DB.masterStatus[newKey]=DB.masterStatus[oldKey]; delete DB.masterStatus[oldKey]; }
+          }
+        }
+      }
     } else {
       // 標準品番のオーバーライド保存
       DB.builtinOverrides[zumen]={hinmei,steps};
