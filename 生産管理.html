@@ -212,8 +212,6 @@ select.st-notyet{background:#FFD966;color:#7F6000}
     <div class="toolbar">
       <div class="filter-bar" style="margin-bottom:0">
         <div class="flt-btn active" onclick="setMasterFilter('all',this)">すべて</div>
-        <div class="flt-btn" onclick="setMasterFilter('notyet',this)">注残あり</div>
-        <div class="flt-btn" onclick="setMasterFilter('done',this)">完了済み</div>
         <div class="flt-btn" onclick="setMasterFilter('custom',this)">手動追加のみ</div>
       </div>
       <button class="btn btn-primary" onclick="openAddPartModal()">＋ 品番追加</button>
@@ -221,19 +219,11 @@ select.st-notyet{background:#FFD966;color:#7F6000}
 
     <div class="tbl-wrap">
     <table>
-      <thead><tr><th>図番</th><th>品名</th><th>グループ</th>
-        <th colspan="2">工程1</th><th colspan="2">工程2</th>
-        <th colspan="2">工程3</th><th colspan="2">工程4</th>
-        <th>注残</th><th>操作</th></tr>
-        <tr style="background:#2E75B6">
-          <th></th><th></th><th></th>
-          <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
-          <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
-          <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
-          <th style="font-size:10px">工程名・担当</th><th style="font-size:10px">状態</th>
-          <th></th><th></th>
-        </tr>
-      </thead>
+      <thead><tr>
+        <th>図番</th><th>品名</th><th>グループ</th>
+        <th>工程1</th><th>工程2</th><th>工程3</th><th>工程4</th>
+        <th>操作</th>
+      </tr></thead>
       <tbody id="master-tbody"></tbody>
     </table></div>
   </div>
@@ -908,46 +898,29 @@ function renderMaster(){
   if(currentGroupFilter==='__none__') list=list.filter(p=>!p.group);
   else if(currentGroupFilter!=='__all__') list=list.filter(p=>p.group===currentGroupFilter);
 
-  // 状態フィルター
-  if(masterFilter==='done') list=list.filter(p=>{
-    const ss=p.steps.map((_,si)=>DB.masterStatus[p.zumen+'_'+si]||'未着手');
-    return ss.every(s=>s==='完了');
-  });
-  else if(masterFilter==='notyet') list=list.filter(p=>{
-    const ss=p.steps.map((_,si)=>DB.masterStatus[p.zumen+'_'+si]||'未着手');
-    return !ss.every(s=>s==='完了');
-  });
-  else if(masterFilter==='custom') list=list.filter(p=>p.isCustom);
+  // 状態フィルター（カスタムのみ残す）
+  if(masterFilter==='custom') list=list.filter(p=>p.isCustom);
 
-  if(!list.length){tbody.innerHTML='<tr><td colspan="14"><div class="empty-state">該当する品番がありません</div></td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty-state">該当する品番がありません</div></td></tr>';return;}
   tbody.innerHTML=list.map(p=>{
-    const MAX=4; let zansu=0;
+    const MAX=4;
     let html=`<td style="font-weight:bold;color:#1F4E79;white-space:nowrap;font-size:11px">
       ${p.zumen}${p.isCustom?'<span class="custom-tag">追加</span>':''}
     </td><td style="font-size:11px">${p.hinmei}</td>
     <td style="text-align:center">${groupBadge(p.group)}</td>`;
     for(let si=0;si<MAX;si++){
       if(si<p.steps.length){
-        const key=p.zumen+'_'+si, val=DB.masterStatus[key]||'未着手';
-        if(val!=='完了') zansu++;
         const s=p.steps[si];
         const proc=typeof s==='string'?s:s.process;
         const assign=typeof s==='object'?s.assignee:'';
-        html+=`<td style="background:#EBF3FB;font-size:11px">
+        html+=`<td style="background:#EBF3FB;font-size:11px;padding:6px 8px">
           <div style="font-weight:bold">${proc}</div>
           ${assign?`<div style="font-size:10px;color:#777">${assign}</div>`:''}
-        </td>
-        <td><select class="st-sel ${getStClass(val)}" style="width:76px"
-          onchange="updateMasterStatus('${p.zumen}',${si},this)">
-          <option ${val==='未着手'?'selected':''}>未着手</option>
-          <option ${val==='作業中'?'selected':''}>作業中</option>
-          <option ${val==='完了'?'selected':''}>完了</option>
-        </select></td>`;
+        </td>`;
       } else {
-        html+='<td style="background:#f5f5f5;color:#ccc;text-align:center;font-size:10px">-</td><td style="background:#f5f5f5"></td>';
+        html+='<td style="background:#f5f5f5;color:#ccc;text-align:center;font-size:11px">-</td>';
       }
     }
-    html+=`<td style="text-align:center;font-size:15px;font-weight:bold;color:${zansu===0?'#70AD47':'#FF6B6B'}">${zansu}</td>`;
     const grpSel = `<select onchange="${p.isCustom?'changePartGroup':'changeBuiltinGroup'}('${p.zumen}',this)"
       style="font-size:10px;padding:2px;border-radius:4px;border:1px solid #ccc;margin-bottom:3px;width:100%">
       <option value="">未分類</option>
