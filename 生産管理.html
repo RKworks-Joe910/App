@@ -222,7 +222,7 @@ select.st-notyet{background:#FFD966;color:#7F6000}
       <thead><tr>
         <th>図番</th><th>品名</th><th>グループ</th>
         <th>工程1</th><th>工程2</th><th>工程3</th><th>工程4</th>
-        <th>操作</th>
+        <th>在庫</th><th>操作</th>
       </tr></thead>
       <tbody id="master-tbody"></tbody>
     </table></div>
@@ -359,6 +359,59 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   </div>
 </div></div>
 
+<!-- 在庫管理モーダル -->
+<div class="modal-bg" id="inv-modal">
+<div class="modal" style="width:min(560px,95vw)">
+  <h2>📦 在庫管理: <span id="inv-title"></span></h2>
+  <div style="display:flex;gap:16px;margin-bottom:16px;background:#F8FBFF;border-radius:8px;padding:12px">
+    <div style="flex:1;text-align:center">
+      <div style="font-size:11px;color:#666;margin-bottom:4px">良品在庫</div>
+      <div id="inv-good-count" style="font-size:28px;font-weight:bold;color:#1F4E79">0</div>
+    </div>
+    <div style="flex:1;text-align:center">
+      <div style="font-size:11px;color:#666;margin-bottom:4px">不良品</div>
+      <div id="inv-bad-count" style="font-size:28px;font-weight:bold;color:#C00000">0</div>
+    </div>
+    <div style="flex:1;text-align:center">
+      <div style="font-size:11px;color:#666;margin-bottom:4px">合計</div>
+      <div id="inv-total-count" style="font-size:28px;font-weight:bold;color:#555">0</div>
+    </div>
+  </div>
+  <div style="border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:12px">
+    <div style="font-size:12px;font-weight:bold;margin-bottom:8px;color:#333">数量を変更</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+      <div style="flex:1;min-width:100px">
+        <label style="font-size:11px">種別</label>
+        <select id="inv-type" style="width:100%" onchange="updateInvTypeHint()">
+          <option value="add_good">＋ 良品入庫</option>
+          <option value="use_good">－ 良品出庫/使用</option>
+          <option value="add_bad">＋ 不良品登録</option>
+          <option value="fix_bad">🔧 不良品を修正→良品に</option>
+          <option value="scrap_bad">🗑 不良品を廃棄</option>
+          <option value="adjust">⚙ 直接修正（棚卸し）</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:80px">
+        <label id="inv-qty-label" style="font-size:11px">数量</label>
+        <input type="number" id="inv-qty" min="0" value="1" style="width:100%">
+      </div>
+      <div style="flex:2;min-width:120px">
+        <label style="font-size:11px">メモ（任意）</label>
+        <input type="text" id="inv-note" placeholder="例：製造ロット001" style="width:100%">
+      </div>
+      <button class="btn" onclick="applyInvChange()" style="white-space:nowrap">適用</button>
+    </div>
+    <div id="inv-type-hint" style="font-size:11px;color:#888;margin-top:6px"></div>
+  </div>
+  <div>
+    <div style="font-size:12px;font-weight:bold;margin-bottom:6px;color:#333">履歴（最新10件）</div>
+    <div id="inv-log" style="max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:6px;font-size:11px"></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn" onclick="document.getElementById('inv-modal').classList.remove('open')" style="background:#eee">閉じる</button>
+  </div>
+</div></div>
+
 <!-- 品番追加・編集モーダル（兼用） -->
 <div class="modal-bg" id="addpart-modal">
 <div class="modal">
@@ -413,7 +466,7 @@ let stepPickerTarget = 'oo'; // 'oo' or 'ap'
 
 function loadDB(){
   try{ const s=localStorage.getItem('seizanDB3'); if(s) return JSON.parse(s); }catch(e){}
-  return {orders:[], oneoff:[], masterStatus:{}, customParts:[], groups:[], builtinGroups:{}, builtinOverrides:{}};
+  return {orders:[], oneoff:[], masterStatus:{}, customParts:[], groups:[], builtinGroups:{}, builtinOverrides:{}, inventory:{}};
 }
 function ensureGroups(){ if(!DB.groups) DB.groups=[]; if(!DB.builtinGroups) DB.builtinGroups={}; if(!DB.builtinOverrides) DB.builtinOverrides={}; }
 function saveDB(){ localStorage.setItem('seizanDB3', JSON.stringify(DB)); }
@@ -901,7 +954,7 @@ function renderMaster(){
   // 状態フィルター（カスタムのみ残す）
   if(masterFilter==='custom') list=list.filter(p=>p.isCustom);
 
-  if(!list.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty-state">該当する品番がありません</div></td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="9"><div class="empty-state">該当する品番がありません</div></td></tr>';return;}
   tbody.innerHTML=list.map(p=>{
     const MAX=4;
     let html=`<td style="font-weight:bold;color:#1F4E79;white-space:nowrap;font-size:11px">
@@ -928,6 +981,15 @@ function renderMaster(){
     </select>`;
     const hasOverride = !p.isCustom && DB.builtinOverrides && DB.builtinOverrides[p.zumen];
     const editedTag = hasOverride ? '<span style="font-size:9px;background:#FFF0E0;color:#C55A00;border:1px solid #F4B183;border-radius:3px;padding:1px 4px;display:block;margin-bottom:2px">編集済</span>' : '';
+    // 在庫セル
+    const inv = (DB.inventory||{})[p.zumen]||{good:0,bad:0};
+    const invBadge = inv.bad>0
+      ? `<div style="font-size:11px"><span style="color:#1F4E79;font-weight:bold">${inv.good}</span><span style="color:#C00000;font-size:10px"> (不良${inv.bad})</span></div>`
+      : `<div style="font-size:13px;font-weight:bold;color:#1F4E79">${inv.good}</div>`;
+    html+=`<td style="text-align:center;min-width:70px">
+      ${invBadge}
+      <button class="btn btn-sm btn-outline" style="margin-top:3px;font-size:10px" onclick="openInvModal('${p.zumen}','${p.hinmei}')">管理</button>
+    </td>`;
     html+=`<td class="center" style="min-width:90px">${grpSel}${editedTag}
       <button class="btn btn-sm btn-outline" style="margin-bottom:2px;width:100%" onclick="openEditPartModal('${p.zumen}',${p.isCustom})">✏ 編集</button>
       ${p.isCustom?`<button class="btn btn-sm btn-danger" style="width:100%" onclick="deleteCustomPart('${p.zumen}')">削除</button>`:''}
@@ -1101,13 +1163,16 @@ function openStepPicker(target){
 function filterSteps(q){
   const list=document.getElementById('step-list');
   const filtered=PROCESS_LIST.filter(s=>s.toLowerCase().includes(q.toLowerCase()));
-  list.innerHTML=filtered.map(s=>`
-    <div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;justify-content:space-between;align-items:center"
-      onmouseover="this.style.background='#e8f0fe'" onmouseout="this.style.background=''"
-      onclick="selectProcessFromPicker(${JSON.stringify(s)})">
-      <span>${s}</span>
-      <span style="font-size:10px;color:#aaa">クリックして追加</span>
-    </div>`).join('');
+  list.innerHTML='';
+  filtered.forEach(s=>{
+    const div=document.createElement('div');
+    div.style.cssText='padding:8px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;justify-content:space-between;align-items:center';
+    div.innerHTML=`<span>${s}</span><span style="font-size:10px;color:#aaa">クリックして追加</span>`;
+    div.addEventListener('mouseover',()=>div.style.background='#e8f0fe');
+    div.addEventListener('mouseout',()=>div.style.background='');
+    div.addEventListener('click',()=>selectProcessFromPicker(s));
+    list.appendChild(div);
+  });
 }
 function selectProcessFromPicker(proc){
   document.getElementById('step-picker-modal').classList.remove('open');
@@ -1115,6 +1180,102 @@ function selectProcessFromPicker(proc){
   // 追加した行のassigneeにフォーカス
   const rows=document.querySelectorAll(`#${stepPickerTarget}-steps .step-row`);
   if(rows.length) rows[rows.length-1].querySelector('.step-assignee').focus();
+}
+
+// ===================== 在庫管理 =====================
+let invCurrentZumen = '';
+
+function ensureInv(zumen){
+  if(!DB.inventory) DB.inventory={};
+  if(!DB.inventory[zumen]) DB.inventory[zumen]={good:0,bad:0,log:[]};
+}
+
+function openInvModal(zumen, hinmei){
+  invCurrentZumen = zumen;
+  ensureInv(zumen);
+  document.getElementById('inv-title').textContent = `${zumen} ${hinmei}`;
+  document.getElementById('inv-type').value = 'add_good';
+  document.getElementById('inv-qty').value = '1';
+  document.getElementById('inv-note').value = '';
+  updateInvTypeHint();
+  renderInvModal();
+  document.getElementById('inv-modal').classList.add('open');
+}
+
+function updateInvTypeHint(){
+  const t = document.getElementById('inv-type').value;
+  const el = document.getElementById('inv-type-hint');
+  const lbl = document.getElementById('inv-qty-label');
+  const hints = {
+    add_good: '製造完了・仕入などで良品在庫を増やします',
+    use_good: '出荷・使用などで良品在庫を減らします',
+    add_bad: '検査で不良品が発生した数を登録します（良品からは引きません）',
+    fix_bad: '不良品を修正して良品に戻します（不良品を減らして良品を増やします）',
+    scrap_bad: '不良品を廃棄処分します（不良品を減らします）',
+    adjust: '棚卸しなどで良品・不良品の実数に直接合わせます'
+  };
+  el.textContent = hints[t]||'';
+  lbl.textContent = t === 'adjust' ? '良品数（実数）' : '数量';
+}
+
+function applyInvChange(){
+  const type = document.getElementById('inv-type').value;
+  const qty = parseInt(document.getElementById('inv-qty').value)||0;
+  const note = document.getElementById('inv-note').value.trim();
+  if(qty < 0){ alert('0以上の数値を入力してください'); return; }
+
+  ensureInv(invCurrentZumen);
+  const inv = DB.inventory[invCurrentZumen];
+  let desc = '';
+
+  if(type === 'add_good'){
+    inv.good += qty; desc = `良品入庫 +${qty}`;
+  } else if(type === 'use_good'){
+    if(qty > inv.good){ alert(`良品在庫が不足しています（現在: ${inv.good}）`); return; }
+    inv.good -= qty; desc = `良品出庫 -${qty}`;
+  } else if(type === 'add_bad'){
+    inv.bad += qty; desc = `不良品登録 +${qty}`;
+  } else if(type === 'fix_bad'){
+    if(qty > inv.bad){ alert(`不良品の数が足りません（現在: ${inv.bad}）`); return; }
+    inv.bad -= qty; inv.good += qty; desc = `不良→良品修正 ${qty}個`;
+  } else if(type === 'scrap_bad'){
+    if(qty > inv.bad){ alert(`不良品の数が足りません（現在: ${inv.bad}）`); return; }
+    inv.bad -= qty; desc = `不良品廃棄 -${qty}`;
+  } else if(type === 'adjust'){
+    const oldGood = inv.good;
+    inv.good = qty; desc = `棚卸し修正 良品: ${oldGood}→${qty}`;
+  }
+
+  if(!inv.log) inv.log=[];
+  inv.log.unshift({date: today(), desc, note});
+  if(inv.log.length > 50) inv.log = inv.log.slice(0,50);
+
+  saveDB();
+  document.getElementById('inv-qty').value = '1';
+  document.getElementById('inv-note').value = '';
+  renderInvModal();
+  renderMaster();
+}
+
+function renderInvModal(){
+  const inv = DB.inventory[invCurrentZumen]||{good:0,bad:0,log:[]};
+  document.getElementById('inv-good-count').textContent = inv.good;
+  document.getElementById('inv-bad-count').textContent = inv.bad;
+  document.getElementById('inv-total-count').textContent = inv.good + inv.bad;
+  const logEl = document.getElementById('inv-log');
+  const logs = (inv.log||[]).slice(0,10);
+  if(!logs.length){
+    logEl.innerHTML='<div style="padding:12px;color:#aaa;text-align:center">履歴なし</div>';
+    return;
+  }
+  logEl.innerHTML = logs.map(l=>`
+    <div style="padding:6px 10px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <span style="color:#555;font-weight:bold">${l.desc}</span>
+        ${l.note?`<span style="color:#888;margin-left:6px">${l.note}</span>`:''}
+      </div>
+      <span style="color:#aaa;white-space:nowrap;margin-left:8px">${l.date}</span>
+    </div>`).join('');
 }
 
 // ===================== データ出力 =====================
