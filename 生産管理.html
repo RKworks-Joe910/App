@@ -237,8 +237,8 @@ select.st-notyet{background:#FFD966;color:#7F6000}
     <div><label>受注No. *</label><input type="text" id="o-no" placeholder="例: ORD-2025-001"></div>
     <div><label>案件名（任意）</label><input type="text" id="o-project" placeholder="例: ○○設備向け部品加工"></div>
     <div><label>客先名</label><input type="text" id="o-customer" placeholder="例: ○○工業株式会社"></div>
-    <div><label>受注日</label><input type="date" id="o-orderdate"></div>
-    <div><label>目標納期</label><input type="date" id="o-deadline"></div>
+    <div><label>受注日</label><input type="text" id="o-orderdate" maxlength="10" placeholder="2026/07/07" oninput="formatDateInput(this)"></div>
+    <div><label>目標納期</label><input type="text" id="o-deadline" maxlength="10" placeholder="2026/07/07" oninput="formatDateInput(this)"></div>
     <div><label>数量</label><input type="number" id="o-qty" min="1" value="1"></div>
     <div class="form-full"><label>備考</label><input type="text" id="o-notes" placeholder="特記事項など"></div>
   </div>
@@ -276,7 +276,7 @@ select.st-notyet{background:#FFD966;color:#7F6000}
     <div><label>案件名 *</label><input type="text" id="oo-name" placeholder="例: 特注ブラケット加工"></div>
     <div><label>客先名</label><input type="text" id="oo-customer" placeholder="例: ○○製作所"></div>
     <div><label>数量</label><input type="number" id="oo-qty" min="1" value="1"></div>
-    <div><label>目標納期</label><input type="date" id="oo-deadline"></div>
+    <div><label>目標納期</label><input type="text" id="oo-deadline" maxlength="10" placeholder="2026/07/07" oninput="formatDateInput(this)"></div>
     <div><label>備考</label><input type="text" id="oo-notes" placeholder="特記事項など"></div>
   </div>
   <div style="margin-top:14px">
@@ -303,7 +303,10 @@ select.st-notyet{background:#FFD966;color:#7F6000}
 <!-- 単発案件 詳細/編集モーダル -->
 <div class="modal-bg" id="oneoff-detail-modal">
 <div class="modal" style="width:min(820px,95vw)">
-  <h2 id="ood-title">⚡ 単発案件詳細</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <h2 id="ood-title" style="margin:0">⚡ 単発案件詳細</h2>
+    <button class="btn btn-sm btn-outline" onclick="openOneoffEdit(currentOneoffId)">✏ 案件情報を編集</button>
+  </div>
   <div id="ood-info" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;background:#f0f4f8;padding:10px;border-radius:8px;font-size:12px"></div>
 
   <!-- 現在の工程と進捗 -->
@@ -474,6 +477,18 @@ function saveDB(){ localStorage.setItem('seizanDB3', JSON.stringify(DB)); }
 // ===================== ユーティリティ =====================
 function today(){ return new Date().toISOString().split('T')[0]; }
 function daysLeft(d){ if(!d) return null; return Math.ceil((new Date(d)-new Date(today()))/(864e5)); }
+// 日付フォーマット: 入力しながら自動でスラッシュを挿入 (YYYY/MM/DD)
+function formatDateInput(el){
+  let v = el.value.replace(/[^\d]/g,'');
+  if(v.length > 8) v = v.slice(0,8);
+  if(v.length >= 5) v = v.slice(0,4) + '/' + v.slice(4);
+  if(v.length >= 8) v = v.slice(0,7) + '/' + v.slice(7);
+  el.value = v;
+}
+// 表示用YYYY/MM/DDを内部保存用YYYY-MM-DDに変換
+function fromDateInput(s){ return s ? s.replace(/\//g,'-') : ''; }
+// 内部保存用YYYY-MM-DDを表示用YYYY/MM/DDに変換
+function toDateDisplay(s){ return s ? s.replace(/-/g,'/') : ''; }
 function deadlineBadge(d){
   if(!d) return '<span class="badge badge-gray">未設定</span>';
   const n=daysLeft(d);
@@ -598,7 +613,7 @@ function renderOrders(){
 
 function openOrderModal(){
   ['o-no','o-project','o-customer','o-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('o-orderdate').value=today();
+  document.getElementById('o-orderdate').value=toDateDisplay(today());
   document.getElementById('o-deadline').value='';
   document.getElementById('o-qty').value=1;
   document.getElementById('o-items').innerHTML='';
@@ -626,7 +641,7 @@ function saveOrder(){
   DB.orders.push({id:uid(),orderNo:no,
     projectName:document.getElementById('o-project').value.trim(),
     customer:document.getElementById('o-customer').value.trim(),
-    orderDate:document.getElementById('o-orderdate').value,deadline:document.getElementById('o-deadline').value,
+    orderDate:fromDateInput(document.getElementById('o-orderdate').value),deadline:fromDateInput(document.getElementById('o-deadline').value),
     qty:parseInt(document.getElementById('o-qty').value)||1,notes:document.getElementById('o-notes').value.trim(),items});
   saveDB(); closeOrderModal(); renderAll();
 }
@@ -816,25 +831,69 @@ function registerOneoffToMaster(){
   alert(`「${oo.name}」を工程マスタ${group?`（${group}）`:'（未分類）'}に登録しました`);
   renderMaster();
 }
+let ooEditId = null;
 function openOneoffModal(){
+  ooEditId = null;
   ['oo-zumen','oo-name','oo-customer','oo-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('oo-qty').value=1;
   document.getElementById('oo-deadline').value='';
   document.getElementById('oo-steps').innerHTML='';
+  document.querySelector('#oneoff-modal h2').textContent='⚡ 単発案件登録';
   document.getElementById('oneoff-modal').classList.add('open');
 }
-function closeOneoffModal(){ document.getElementById('oneoff-modal').classList.remove('open'); }
+function openOneoffEdit(id){
+  const oo=DB.oneoff.find(o=>o.id===id); if(!oo) return;
+  ooEditId = id;
+  document.getElementById('oneoff-detail-modal').classList.remove('open');
+  document.getElementById('oo-zumen').value=oo.zumen||'';
+  document.getElementById('oo-name').value=oo.name||'';
+  document.getElementById('oo-customer').value=oo.customer||'';
+  document.getElementById('oo-qty').value=oo.qty||1;
+  document.getElementById('oo-deadline').value=toDateDisplay(oo.deadline||'');
+  document.getElementById('oo-notes').value=oo.notes||'';
+  // 既存工程をエディタに展開
+  const stepsEl=document.getElementById('oo-steps');
+  stepsEl.innerHTML='';
+  (oo.steps||[]).forEach(s=>{
+    const proc=typeof s==='string'?s:s.process;
+    const assign=typeof s==='object'?s.assignee:'';
+    addStepRow('oo-steps',proc,assign);
+  });
+  document.querySelector('#oneoff-modal h2').textContent='✏ 単発案件編集';
+  document.getElementById('oneoff-modal').classList.add('open');
+}
+function closeOneoffModal(){ document.getElementById('oneoff-modal').classList.remove('open'); ooEditId=null; }
 function saveOneoff(){
   const name=document.getElementById('oo-name').value.trim();
   if(!name){alert('案件名を入力してください');return;}
   const steps=collectSteps('oo-steps');
-  const oo={id:uid(),zumen:document.getElementById('oo-zumen').value.trim(),name,
-    customer:document.getElementById('oo-customer').value.trim(),
-    qty:parseInt(document.getElementById('oo-qty').value)||1,
-    deadline:document.getElementById('oo-deadline').value,
-    notes:document.getElementById('oo-notes').value.trim(),
-    steps, stepStatuses:steps.map(()=>'未着手')};
-  DB.oneoff.push(oo); saveDB(); closeOneoffModal(); renderAll();
+  const deadline=fromDateInput(document.getElementById('oo-deadline').value);
+  if(ooEditId){
+    // 編集モード: 既存レコードを更新
+    const oo=DB.oneoff.find(o=>o.id===ooEditId); if(!oo) return;
+    const oldLen=oo.steps.length;
+    oo.zumen=document.getElementById('oo-zumen').value.trim();
+    oo.name=name;
+    oo.customer=document.getElementById('oo-customer').value.trim();
+    oo.qty=parseInt(document.getElementById('oo-qty').value)||1;
+    oo.deadline=deadline;
+    oo.notes=document.getElementById('oo-notes').value.trim();
+    oo.steps=steps;
+    // ステータスを工程数に合わせて調整
+    const newStatuses=steps.map((_,i)=>oo.stepStatuses[i]||'未着手');
+    oo.stepStatuses=newStatuses;
+    saveDB(); closeOneoffModal(); renderAll();
+    // 詳細モーダルを再表示
+    openOneoffDetail(ooEditId);
+  } else {
+    const oo={id:uid(),zumen:document.getElementById('oo-zumen').value.trim(),name,
+      customer:document.getElementById('oo-customer').value.trim(),
+      qty:parseInt(document.getElementById('oo-qty').value)||1,
+      deadline,
+      notes:document.getElementById('oo-notes').value.trim(),
+      steps, stepStatuses:steps.map(()=>'未着手')};
+    DB.oneoff.push(oo); saveDB(); closeOneoffModal(); renderAll();
+  }
 }
 
 // ===================== グループ管理 =====================
@@ -1131,18 +1190,32 @@ function deleteCustomPart(zumen){
 }
 
 // ===================== 工程ステップ共通 =====================
-function addStepRow(containerId, processVal, assigneeVal){
-  const container=document.getElementById(containerId);
-  const n=container.querySelectorAll('.step-row').length+1;
+function createStepRowEl(processVal, assigneeVal){
   const div=document.createElement('div');
   div.className='step-row';
-  div.innerHTML=`<div class="step-num">${n}</div>
-    <input type="text" class="step-process" placeholder="旋盤・フライス・メッキ等" value="${processVal}">
+  div.innerHTML=`<div class="step-num">1</div>
+    <input type="text" class="step-process" placeholder="旋盤・フライス・メッキ等">
     <span class="step-sep">／</span>
-    <input type="text" class="step-assignee" placeholder="社内 or 業者名（任意）" value="${assigneeVal}">
+    <input type="text" class="step-assignee" placeholder="社内 or 業者名（任意）">
+    <button class="btn btn-sm btn-outline" title="この行の前に挿入" onclick="insertStepBefore(this)" style="padding:2px 6px;font-size:11px;flex-shrink:0">↑挿入</button>
     <button class="btn btn-sm btn-danger" onclick="removeStepRow(this)">✕</button>`;
+  div.querySelector('.step-process').value = processVal||'';
+  div.querySelector('.step-assignee').value = assigneeVal||'';
+  return div;
+}
+function addStepRow(containerId, processVal, assigneeVal){
+  const container=document.getElementById(containerId);
+  const div=createStepRowEl(processVal, assigneeVal);
   container.appendChild(div);
   renumberStepRows(container);
+}
+function insertStepBefore(btn){
+  const row=btn.closest('.step-row');
+  const container=row.closest('.steps-editor');
+  const newRow=createStepRowEl('','');
+  container.insertBefore(newRow, row);
+  renumberStepRows(container);
+  newRow.querySelector('.step-process').focus();
 }
 function removeStepRow(btn){ const container=btn.closest('.steps-editor'); btn.parentElement.remove(); renumberStepRows(container); }
 function renumberStepRows(container){ container.querySelectorAll('.step-num').forEach((el,i)=>el.textContent=i+1); }
