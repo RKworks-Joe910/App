@@ -12,7 +12,7 @@ header{background:linear-gradient(135deg,#1F4E79,#2E75B6);color:white;padding:12
   display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
 header h1{font-size:18px;letter-spacing:1px}
 
-.tabs{display:flex;background:#1a3a5c;padding:0 20px}
+.tabs{display:flex;background:#1a3a5c;padding:0 20px;position:sticky;top:44px;z-index:99}
 .tab{padding:10px 22px;cursor:pointer;color:rgba(255,255,255,.6);font-size:13px;border-bottom:3px solid transparent;transition:.2s}
 .tab.active{color:white;border-bottom-color:#FFD700;font-weight:bold}
 .tab:hover{color:white}
@@ -95,7 +95,7 @@ select.st-done{background:#70AD47;color:white}
 select.st-inprog{background:#2E75B6;color:white}
 select.st-notyet{background:#FFD966;color:#7F6000}
 
-.toolbar{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px}
+.toolbar{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px;position:sticky;top:82px;z-index:98;background:#f0f4f8;padding:8px 0;border-bottom:1px solid #e0e8f0}
 .toolbar-left{display:flex;gap:8px;align-items:center}
 
 .legend{display:flex;gap:12px;padding:6px 20px;font-size:11px;flex-wrap:wrap;background:#f8f9fb;border-bottom:1px solid #e0e0e0}
@@ -122,7 +122,9 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   <h1>🏭 生産管理システム</h1>
   <div style="display:flex;gap:10px;align-items:center">
     <span id="hdr-date" style="font-size:12px;opacity:.8"></span>
-    <button class="btn btn-outline" onclick="exportData()" style="font-size:11px;padding:5px 10px">📥 データ出力</button>
+    <button class="btn btn-outline" onclick="importData()" title="別のPCで保存したJSONファイルを読み込みます" style="font-size:11px;padding:5px 10px">📂 データ取込</button>
+    <button class="btn btn-outline" onclick="exportData()" title="全データをJSONファイルとして保存します。別PCへの引っ越しやバックアップに使えます" style="font-size:11px;padding:5px 10px">💾 データ保存</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(this)">
   </div>
 </header>
 
@@ -232,33 +234,38 @@ select.st-notyet{background:#FFD966;color:#7F6000}
 <!-- 受注登録モーダル -->
 <div class="modal-bg" id="order-modal">
 <div class="modal">
-  <h2>📋 受注登録</h2>
+  <h2 id="o-modal-title">📋 受注登録</h2>
   <div class="form-grid">
     <div><label>受注No. *</label><input type="text" id="o-no" placeholder="例: ORD-2025-001"></div>
     <div><label>案件名（任意）</label><input type="text" id="o-project" placeholder="例: ○○設備向け部品加工"></div>
     <div><label>客先名</label><input type="text" id="o-customer" placeholder="例: ○○工業株式会社"></div>
     <div><label>受注日</label><input type="text" id="o-orderdate" maxlength="10" placeholder="2026/07/07" oninput="formatDateInput(this)"></div>
     <div><label>目標納期</label><input type="text" id="o-deadline" maxlength="10" placeholder="2026/07/07" oninput="formatDateInput(this)"></div>
-    <div><label>数量</label><input type="number" id="o-qty" min="1" value="1"></div>
+    <div><label>注文数</label><input type="number" id="o-qty" min="1" value="1"></div>
+    <div><label>製作数 <span style="font-size:10px;color:#888">（在庫分含む）</span></label><input type="number" id="o-makeqty" min="1" value="1"></div>
     <div class="form-full"><label>備考</label><input type="text" id="o-notes" placeholder="特記事項など"></div>
   </div>
   <div style="margin-top:14px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <label style="margin:0">品番選択（複数追加可）</label>
       <button class="btn btn-sm btn-outline" onclick="addOrderItem()">＋ 品番追加</button>
     </div>
-    <div id="o-items" style="max-height:220px;overflow-y:auto"></div>
+    <input type="text" id="o-item-search" placeholder="図番・品名・グループで絞り込み..." oninput="filterOrderItemSearch(this.value)" style="margin-bottom:8px;font-size:12px">
+    <div id="o-items" style="max-height:200px;overflow-y:auto"></div>
   </div>
   <div class="form-actions">
     <button class="btn" onclick="closeOrderModal()" style="background:#eee">キャンセル</button>
-    <button class="btn btn-primary" onclick="saveOrder()">💾 登録</button>
+    <button class="btn btn-primary" id="o-save-btn" onclick="saveOrder()">💾 登録</button>
   </div>
 </div></div>
 
 <!-- 受注詳細モーダル -->
 <div class="modal-bg" id="order-detail-modal">
 <div class="modal" style="width:min(920px,95vw)">
-  <h2 id="od-title">受注詳細</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <h2 id="od-title" style="margin:0">受注詳細</h2>
+    <button class="btn btn-sm btn-outline" onclick="openOrderEdit(currentOrderId)">✏ 受注情報を編集</button>
+  </div>
   <div id="od-info" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;background:#f0f4f8;padding:10px;border-radius:8px;font-size:12px"></div>
   <div id="od-items"></div>
   <div class="form-actions" style="margin-top:12px">
@@ -479,11 +486,12 @@ function today(){ return new Date().toISOString().split('T')[0]; }
 function daysLeft(d){ if(!d) return null; return Math.ceil((new Date(d)-new Date(today()))/(864e5)); }
 // 日付フォーマット: 入力しながら自動でスラッシュを挿入 (YYYY/MM/DD)
 function formatDateInput(el){
-  let v = el.value.replace(/[^\d]/g,'');
-  if(v.length > 8) v = v.slice(0,8);
-  if(v.length >= 5) v = v.slice(0,4) + '/' + v.slice(4);
-  if(v.length >= 8) v = v.slice(0,7) + '/' + v.slice(7);
-  el.value = v;
+  const v = el.value.replace(/[^\d]/g,'').slice(0,8); // 数字のみ最大8桁
+  const n = v.length;
+  // 桁数に応じてスラッシュを挿入（スラッシュ追加後の長さで判定しないようにする）
+  if(n <= 4)      el.value = v;
+  else if(n <= 6) el.value = v.slice(0,4) + '/' + v.slice(4);
+  else            el.value = v.slice(0,4) + '/' + v.slice(4,6) + '/' + v.slice(6);
 }
 // 表示用YYYY/MM/DDを内部保存用YYYY-MM-DDに変換
 function fromDateInput(s){ return s ? s.replace(/\//g,'-') : ''; }
@@ -611,54 +619,133 @@ function renderOrders(){
   }).join('');
 }
 
+let orderEditId = null;
+
 function openOrderModal(){
+  orderEditId = null;
   ['o-no','o-project','o-customer','o-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('o-orderdate').value=toDateDisplay(today());
   document.getElementById('o-deadline').value='';
   document.getElementById('o-qty').value=1;
+  document.getElementById('o-makeqty').value=1;
+  document.getElementById('o-item-search').value='';
   document.getElementById('o-items').innerHTML='';
+  document.getElementById('o-modal-title').textContent='📋 受注登録';
+  document.getElementById('o-save-btn').textContent='💾 登録';
   addOrderItem();
   document.getElementById('order-modal').classList.add('open');
 }
-function closeOrderModal(){ document.getElementById('order-modal').classList.remove('open'); }
 
-function addOrderItem(){
+function openOrderEdit(id){
+  const order=DB.orders.find(o=>o.id===id); if(!order) return;
+  orderEditId = id;
+  document.getElementById('order-detail-modal').classList.remove('open');
+  document.getElementById('o-no').value=order.orderNo||'';
+  document.getElementById('o-project').value=order.projectName||'';
+  document.getElementById('o-customer').value=order.customer||'';
+  document.getElementById('o-orderdate').value=toDateDisplay(order.orderDate||'');
+  document.getElementById('o-deadline').value=toDateDisplay(order.deadline||'');
+  document.getElementById('o-qty').value=order.qty||1;
+  document.getElementById('o-makeqty').value=order.makeQty||order.qty||1;
+  document.getElementById('o-notes').value=order.notes||'';
+  document.getElementById('o-item-search').value='';
+  // 既存品番をセレクトとして展開
+  const itemsEl=document.getElementById('o-items');
+  itemsEl.innerHTML='';
+  (order.items||[]).forEach(item=>{
+    addOrderItem(item.zumen);
+  });
+  document.getElementById('o-modal-title').textContent='✏ 受注情報を編集';
+  document.getElementById('o-save-btn').textContent='💾 変更を保存';
+  document.getElementById('order-modal').classList.add('open');
+}
+
+function closeOrderModal(){ document.getElementById('order-modal').classList.remove('open'); orderEditId=null; }
+
+function getFilteredParts(q){
+  if(!q) return allParts();
+  const lq=q.toLowerCase();
+  return allParts().filter(p=>p.zumen.toLowerCase().includes(lq)||p.hinmei.toLowerCase().includes(lq)||(p.group||'').toLowerCase().includes(lq));
+}
+
+function filterOrderItemSearch(q){
+  const parts=getFilteredParts(q);
+  const opts=parts.map(p=>`<option value="${p.zumen}">${p.zumen} | ${p.hinmei}${p.group?' ['+p.group+']':''}</option>`).join('');
+  document.querySelectorAll('#o-items select').forEach(sel=>{
+    const cur=sel.value;
+    sel.innerHTML=opts;
+    if(parts.find(p=>p.zumen===cur)) sel.value=cur;
+  });
+}
+
+function addOrderItem(preselect){
+  const q=document.getElementById('o-item-search')?.value||'';
+  const parts=getFilteredParts(q);
+  const opts=parts.map(p=>`<option value="${p.zumen}">${p.zumen} | ${p.hinmei}${p.group?' ['+p.group+']':''}</option>`).join('');
   const div=document.createElement('div');
   div.style.cssText='display:flex;gap:8px;margin-bottom:6px;align-items:center;background:#f7f9ff;padding:8px;border-radius:6px';
-  const opts=allParts().map(p=>`<option value="${p.zumen}">${p.zumen} | ${p.hinmei}</option>`).join('');
   div.innerHTML=`<select style="flex:1">${opts}</select>
     <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>`;
+  if(preselect) div.querySelector('select').value=preselect;
   document.getElementById('o-items').appendChild(div);
 }
 
 function saveOrder(){
   const no=document.getElementById('o-no').value.trim();
   if(!no){alert('受注No.を入力してください');return;}
-  const items=Array.from(document.querySelectorAll('#o-items select')).map(sel=>{
-    const part=allParts().find(p=>p.zumen===sel.value);
-    return {zumen:part.zumen,hinmei:part.hinmei,steps:part.steps,stepStatuses:part.steps.map(()=>'未着手')};
-  });
-  DB.orders.push({id:uid(),orderNo:no,
-    projectName:document.getElementById('o-project').value.trim(),
-    customer:document.getElementById('o-customer').value.trim(),
-    orderDate:fromDateInput(document.getElementById('o-orderdate').value),deadline:fromDateInput(document.getElementById('o-deadline').value),
-    qty:parseInt(document.getElementById('o-qty').value)||1,notes:document.getElementById('o-notes').value.trim(),items});
-  saveDB(); closeOrderModal(); renderAll();
+  const selects=Array.from(document.querySelectorAll('#o-items select'));
+  if(!selects.length){alert('品番を1つ以上選択してください');return;}
+  const orderDate=fromDateInput(document.getElementById('o-orderdate').value);
+  const deadline=fromDateInput(document.getElementById('o-deadline').value);
+  const qty=parseInt(document.getElementById('o-qty').value)||1;
+  const makeQty=parseInt(document.getElementById('o-makeqty').value)||qty;
+  const projectName=document.getElementById('o-project').value.trim();
+  const customer=document.getElementById('o-customer').value.trim();
+  const notes=document.getElementById('o-notes').value.trim();
+
+  if(orderEditId){
+    const order=DB.orders.find(o=>o.id===orderEditId); if(!order) return;
+    order.orderNo=no; order.projectName=projectName; order.customer=customer;
+    order.orderDate=orderDate; order.deadline=deadline;
+    order.qty=qty; order.makeQty=makeQty; order.notes=notes;
+    // 品番の更新（ステータスは既存品番のものを引き継ぐ）
+    const newZumens=selects.map(sel=>sel.value);
+    const oldItems=order.items||[];
+    order.items=newZumens.map(zumen=>{
+      const existing=oldItems.find(it=>it.zumen===zumen);
+      if(existing) return existing;
+      const part=allParts().find(p=>p.zumen===zumen);
+      return {zumen:part.zumen,hinmei:part.hinmei,steps:part.steps,stepStatuses:part.steps.map(()=>'未着手')};
+    });
+    saveDB(); closeOrderModal(); renderAll();
+    openOrderDetail(orderEditId);
+  } else {
+    const items=selects.map(sel=>{
+      const part=allParts().find(p=>p.zumen===sel.value);
+      return {zumen:part.zumen,hinmei:part.hinmei,steps:part.steps,stepStatuses:part.steps.map(()=>'未着手')};
+    });
+    DB.orders.push({id:uid(),orderNo:no,projectName,customer,orderDate,deadline,qty,makeQty,notes,items});
+    saveDB(); closeOrderModal(); renderAll();
+  }
 }
 function deleteOrder(id){
   if(!confirm('この受注を削除しますか？'))return;
   DB.orders=DB.orders.filter(o=>o.id!==id); saveDB(); renderAll();
 }
 
+let currentOrderId = null;
 function openOrderDetail(id){
   const order=DB.orders.find(o=>o.id===id); if(!order) return;
+  currentOrderId = id;
   document.getElementById('od-title').textContent=`📋 受注詳細: ${order.orderNo}`;
   document.getElementById('od-delete-btn').onclick=()=>{if(confirm('削除しますか？')){deleteOrder(id);closeDetailModal();}};
+  const makeQtyInfo = order.makeQty && order.makeQty!==order.qty
+    ? `<span style="font-size:10px;color:#888">（製作数: ${order.makeQty}）</span>` : '';
   document.getElementById('od-info').innerHTML=`
     <div><div style="font-size:10px;color:#777">客先</div><b>${order.customer||'-'}</b></div>
-    <div><div style="font-size:10px;color:#777">受注日</div>${order.orderDate||'-'}</div>
-    <div><div style="font-size:10px;color:#777">目標納期</div><b>${order.deadline||'-'}</b></div>
-    <div><div style="font-size:10px;color:#777">数量</div>${order.qty||1} 個</div>
+    <div><div style="font-size:10px;color:#777">受注日</div>${toDateDisplay(order.orderDate)||'-'}</div>
+    <div><div style="font-size:10px;color:#777">目標納期</div><b>${toDateDisplay(order.deadline)||'-'}</b> ${deadlineBadge(order.deadline)}</div>
+    <div><div style="font-size:10px;color:#777">注文数</div>${order.qty||1} 個 ${makeQtyInfo}</div>
     ${order.projectName?`<div style="grid-column:1/-1"><div style="font-size:10px;color:#777">案件名</div><b>${order.projectName}</b></div>`:''}
     ${order.notes?`<div style="grid-column:1/-1"><div style="font-size:10px;color:#777">備考</div>${order.notes}</div>`:''}`;
   document.getElementById('od-items').innerHTML=(order.items||[]).map((item,ii)=>{
@@ -1351,13 +1438,34 @@ function renderInvModal(){
     </div>`).join('');
 }
 
-// ===================== データ出力 =====================
+// ===================== データ入出力 =====================
 function exportData(){
   const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download=`seizan_backup_${today()}.json`;
   a.click();
+}
+function importData(){
+  document.getElementById('import-file').click();
+}
+function handleImport(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!confirm('現在のデータをインポートしたデータで上書きします。よろしいですか？\n（この操作は元に戻せません）')) return;
+      DB=data;
+      saveDB();
+      renderAll();
+      alert('データのインポートが完了しました');
+    }catch(err){
+      alert('ファイルの読み込みに失敗しました。正しいJSONファイルか確認してください');
+    }
+  };
+  reader.readAsText(file);
+  input.value='';
 }
 
 // ===================== 初期化 =====================
