@@ -164,11 +164,19 @@ select.st-notyet{background:#FFD966;color:#7F6000}
 <div id="tab-orders" class="tab-content">
   <div class="page" style="padding-top:14px">
     <div class="toolbar">
-      <div class="filter-bar" style="margin-bottom:0">
-        <div class="flt-btn active" onclick="setOrderFilter('all',this)">すべて</div>
-        <div class="flt-btn" onclick="setOrderFilter('active',this)">進行中</div>
-        <div class="flt-btn" onclick="setOrderFilter('done',this)">完了</div>
-        <div class="flt-btn" onclick="setOrderFilter('overdue',this)">納期超過</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="filter-bar" style="margin-bottom:0">
+          <div class="flt-btn active" onclick="setOrderFilter('all',this)">すべて</div>
+          <div class="flt-btn" onclick="setOrderFilter('active',this)">進行中</div>
+          <div class="flt-btn" onclick="setOrderFilter('done',this)">完了</div>
+          <div class="flt-btn" onclick="setOrderFilter('overdue',this)">納期超過</div>
+        </div>
+        <select id="order-sort" onchange="renderOrders()" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid #ccc">
+          <option value="reg">登録順</option>
+          <option value="deadline">納期順</option>
+          <option value="customer">客先順</option>
+          <option value="progress">進捗順</option>
+        </select>
       </div>
       <button class="btn btn-primary" onclick="openOrderModal()">＋ 新規受注登録</button>
     </div>
@@ -184,10 +192,19 @@ select.st-notyet{background:#FFD966;color:#7F6000}
 <div id="tab-oneoff" class="tab-content">
   <div class="page" style="padding-top:14px">
     <div class="toolbar">
-      <div class="filter-bar" style="margin-bottom:0">
-        <div class="flt-btn active" onclick="setOneoffFilter('all',this)">すべて</div>
-        <div class="flt-btn" onclick="setOneoffFilter('active',this)">進行中</div>
-        <div class="flt-btn" onclick="setOneoffFilter('done',this)">完了</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="filter-bar" style="margin-bottom:0">
+          <div class="flt-btn active" onclick="setOneoffFilter('all',this)">すべて</div>
+          <div class="flt-btn" onclick="setOneoffFilter('active',this)">進行中</div>
+          <div class="flt-btn" onclick="setOneoffFilter('done',this)">完了</div>
+        </div>
+        <select id="oneoff-sort" onchange="renderOneoff()" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid #ccc">
+          <option value="reg">登録順</option>
+          <option value="deadline">納期順</option>
+          <option value="customer">客先順</option>
+          <option value="name">案件名順</option>
+          <option value="progress">進捗順</option>
+        </select>
       </div>
       <button class="btn btn-primary" onclick="openOneoffModal()">＋ 新規単発案件登録</button>
     </div>
@@ -239,8 +256,8 @@ select.st-notyet{background:#FFD966;color:#7F6000}
     <div><label>受注No. *</label><input type="text" id="o-no" placeholder="例: ORD-2025-001"></div>
     <div><label>案件名（任意）</label><input type="text" id="o-project" placeholder="例: ○○設備向け部品加工"></div>
     <div><label>客先名</label><input type="text" id="o-customer" placeholder="例: ○○工業株式会社"></div>
-    <div><label>受注日</label><input type="text" id="o-orderdate" maxlength="10" placeholder="2026/07/07" oninput="formatDateInput(this)"></div>
-    <div><label>目標納期</label><input type="text" id="o-deadline" maxlength="10" placeholder="2026/07/07" oninput="formatDateInput(this)"></div>
+    <div><label>受注日</label><input type="text" id="o-orderdate" maxlength="10" placeholder="2026/07/07" oninput="if(!event.isComposing)formatDateInput(this)"></div>
+    <div><label>目標納期</label><input type="text" id="o-deadline" maxlength="10" placeholder="2026/07/07" oninput="if(!event.isComposing)formatDateInput(this)"></div>
     <div><label>注文数</label><input type="number" id="o-qty" min="1" value="1"></div>
     <div><label>製作数 <span style="font-size:10px;color:#888">（在庫分含む）</span></label><input type="number" id="o-makeqty" min="1" value="1"></div>
     <div class="form-full"><label>備考</label><input type="text" id="o-notes" placeholder="特記事項など"></div>
@@ -280,11 +297,12 @@ select.st-notyet{background:#FFD966;color:#7F6000}
   <h2>⚡ 単発案件登録</h2>
   <div class="form-grid">
     <div><label>図番</label><input type="text" id="oo-zumen" placeholder="例: SP-001"></div>
-    <div><label>案件名 *</label><input type="text" id="oo-name" placeholder="例: 特注ブラケット加工"></div>
+    <div><label>品名 <span style="font-size:10px;color:#888">（工程マスタ登録時の品名）</span></label><input type="text" id="oo-hinmei" placeholder="例: 特注ブラケット"></div>
+    <div><label>案件名 *</label><input type="text" id="oo-name" placeholder="例: ○○向け特注加工"></div>
     <div><label>客先名</label><input type="text" id="oo-customer" placeholder="例: ○○製作所"></div>
     <div><label>数量</label><input type="number" id="oo-qty" min="1" value="1"></div>
-    <div><label>目標納期</label><input type="text" id="oo-deadline" maxlength="10" placeholder="2026/07/07" oninput="formatDateInput(this)"></div>
-    <div><label>備考</label><input type="text" id="oo-notes" placeholder="特記事項など"></div>
+    <div><label>目標納期</label><input type="text" id="oo-deadline" maxlength="10" placeholder="2026/07/07" oninput="if(!event.isComposing)formatDateInput(this)"></div>
+    <div class="form-full"><label>備考</label><input type="text" id="oo-notes" placeholder="特記事項など"></div>
   </div>
   <div style="margin-top:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -596,6 +614,8 @@ function renderOrders(){
   if(orderFilter==='done') list=list.filter(o=>calcOrderPct(o)>=100);
   else if(orderFilter==='active') list=list.filter(o=>calcOrderPct(o)<100);
   else if(orderFilter==='overdue') list=list.filter(o=>{const d=daysLeft(o.deadline);return d!==null&&d<0&&calcOrderPct(o)<100;});
+  const sortVal=document.getElementById('order-sort')?.value||'reg';
+  list=sortList(list,sortVal,calcOrderPct);
   if(!list.length){tbody.innerHTML='<tr><td colspan="11"><div class="empty-state"><div class="icon">📋</div>受注データがありません</div></td></tr>';return;}
   tbody.innerHTML=list.map(o=>{
     const pct=calcOrderPct(o);
@@ -790,11 +810,25 @@ function setOneoffFilter(f,btn){
   document.querySelectorAll('#tab-oneoff .flt-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active'); renderOneoff();
 }
+function sortList(list, sortVal, pctFn){
+  const l=[...list];
+  if(sortVal==='deadline') l.sort((a,b)=>{
+    if(!a.deadline&&!b.deadline) return 0;
+    if(!a.deadline) return 1; if(!b.deadline) return -1;
+    return a.deadline.localeCompare(b.deadline);
+  });
+  else if(sortVal==='customer') l.sort((a,b)=>(a.customer||'').localeCompare(b.customer||'','ja'));
+  else if(sortVal==='name') l.sort((a,b)=>(a.name||'').localeCompare(b.name||'','ja'));
+  else if(sortVal==='progress' && pctFn) l.sort((a,b)=>pctFn(a)-pctFn(b));
+  return l;
+}
 function renderOneoff(){
   const tbody=document.getElementById('oneoff-tbody');
   let list=DB.oneoff||[];
   if(oneoffFilter==='done') list=list.filter(o=>calcOneoffPct(o)>=100);
   else if(oneoffFilter==='active') list=list.filter(o=>calcOneoffPct(o)<100);
+  const sortVal=document.getElementById('oneoff-sort')?.value||'reg';
+  list=sortList(list,sortVal,calcOneoffPct);
   if(!list.length){tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">⚡</div>単発案件がありません</div></td></tr>';return;}
   tbody.innerHTML=list.map(oo=>{
     const pct=calcOneoffPct(oo);
@@ -844,9 +878,10 @@ function openOneoffDetail(id){
   document.getElementById('ood-title').textContent=`⚡ ${oo.name}`;
   document.getElementById('ood-info').innerHTML=`
     <div><div style="font-size:10px;color:#777">図番</div><b>${oo.zumen||'-'}</b></div>
+    <div><div style="font-size:10px;color:#777">品名</div>${oo.hinmei||'-'}</div>
     <div><div style="font-size:10px;color:#777">客先</div>${oo.customer||'-'}</div>
     <div><div style="font-size:10px;color:#777">数量</div>${oo.qty||1} 個</div>
-    <div><div style="font-size:10px;color:#777">目標納期</div><b>${oo.deadline||'-'}</b> ${deadlineBadge(oo.deadline)}</div>
+    <div><div style="font-size:10px;color:#777">目標納期</div><b>${toDateDisplay(oo.deadline)||'-'}</b> ${deadlineBadge(oo.deadline)}</div>
     ${oo.notes?`<div style="grid-column:1/-1"><div style="font-size:10px;color:#777">備考</div>${oo.notes}</div>`:''}`;
 
   // 既存工程のステータスUI
@@ -913,15 +948,16 @@ function registerOneoffToMaster(){
       if(DB.groups[idx]) group=DB.groups[idx].name;
     }
   }
-  DB.customParts.push({zumen, hinmei:oo.name, steps:oo.steps, group});
+  const hinmeiForMaster = oo.hinmei || oo.name;
+  DB.customParts.push({zumen, hinmei:hinmeiForMaster, steps:oo.steps, group});
   saveDB();
-  alert(`「${oo.name}」を工程マスタ${group?`（${group}）`:'（未分類）'}に登録しました`);
+  alert(`「${hinmeiForMaster}」を工程マスタ${group?`（${group}）`:'（未分類）'}に登録しました`);
   renderMaster();
 }
 let ooEditId = null;
 function openOneoffModal(){
   ooEditId = null;
-  ['oo-zumen','oo-name','oo-customer','oo-notes'].forEach(id=>document.getElementById(id).value='');
+  ['oo-zumen','oo-hinmei','oo-name','oo-customer','oo-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('oo-qty').value=1;
   document.getElementById('oo-deadline').value='';
   document.getElementById('oo-steps').innerHTML='';
@@ -933,6 +969,7 @@ function openOneoffEdit(id){
   ooEditId = id;
   document.getElementById('oneoff-detail-modal').classList.remove('open');
   document.getElementById('oo-zumen').value=oo.zumen||'';
+  document.getElementById('oo-hinmei').value=oo.hinmei||'';
   document.getElementById('oo-name').value=oo.name||'';
   document.getElementById('oo-customer').value=oo.customer||'';
   document.getElementById('oo-qty').value=oo.qty||1;
@@ -953,13 +990,14 @@ function closeOneoffModal(){ document.getElementById('oneoff-modal').classList.r
 function saveOneoff(){
   const name=document.getElementById('oo-name').value.trim();
   if(!name){alert('案件名を入力してください');return;}
+  const hinmei=document.getElementById('oo-hinmei').value.trim();
   const steps=collectSteps('oo-steps');
   const deadline=fromDateInput(document.getElementById('oo-deadline').value);
   if(ooEditId){
     // 編集モード: 既存レコードを更新
     const oo=DB.oneoff.find(o=>o.id===ooEditId); if(!oo) return;
-    const oldLen=oo.steps.length;
     oo.zumen=document.getElementById('oo-zumen').value.trim();
+    oo.hinmei=hinmei;
     oo.name=name;
     oo.customer=document.getElementById('oo-customer').value.trim();
     oo.qty=parseInt(document.getElementById('oo-qty').value)||1;
@@ -973,7 +1011,7 @@ function saveOneoff(){
     // 詳細モーダルを再表示
     openOneoffDetail(ooEditId);
   } else {
-    const oo={id:uid(),zumen:document.getElementById('oo-zumen').value.trim(),name,
+    const oo={id:uid(),zumen:document.getElementById('oo-zumen').value.trim(),hinmei,name,
       customer:document.getElementById('oo-customer').value.trim(),
       qty:parseInt(document.getElementById('oo-qty').value)||1,
       deadline,
