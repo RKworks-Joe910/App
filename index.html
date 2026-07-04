@@ -1,565 +1,499 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEON SYNC — CG MV Engine</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
-    canvas { display: block; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFE QUEST — 日常経験値システム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #10162a;
+    --panel: #1a2340;
+    --panel-2: #141b34;
+    --border: #4a63b8;
+    --gold: #ffcc4d;
+    --text: #eef1ff;
+    --dim: #8b93c4;
+    --hp: #ff5d73;
+    --good: #5ee7a8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DotGothic16', 'MS Gothic', monospace;
+    min-height: 100vh;
+  }
+  body {
+    display: flex; justify-content: center;
+    padding: 20px 12px 100px;
+  }
+  #app { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 16px; }
 
-    /* CRT scanlines overlay */
-    .scanlines {
-      position: fixed; inset: 0; pointer-events: none; z-index: 10;
-      background: repeating-linear-gradient(
-        0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px
-      );
-    }
+  .rpg-panel {
+    background: var(--panel);
+    border: 3px solid var(--border);
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 2px #000, 0 4px 0 rgba(0,0,0,0.35);
+    padding: 14px 16px;
+  }
 
-    /* HUD: title */
-    #hud {
-      position: fixed; top: 24px; left: 24px; z-index: 20; color: #0ff;
-      user-select: none; pointer-events: none;
-    }
-    #hud h1 {
-      font-size: 22px; letter-spacing: 8px; font-weight: 400;
-      text-shadow: 0 0 10px #0ff, 0 0 30px #0ff5;
-      animation: glitch 9s infinite;
-    }
-    #hud .sub { font-size: 10px; letter-spacing: 4px; opacity: 0.45; margin-top: 5px; }
+  /* Header */
+  #header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #header .name-row { display: flex; align-items: baseline; gap: 10px; }
+  #hero-name {
+    background: transparent; border: none; color: var(--gold);
+    font-family: inherit; font-size: 20px; letter-spacing: 2px;
+    border-bottom: 1px dashed transparent;
+  }
+  #hero-name:focus { outline: none; border-bottom: 1px dashed var(--gold); }
+  .lv-badge { font-size: 14px; color: var(--text); }
+  .lv-badge b { color: var(--gold); font-size: 18px; }
+  #streak { font-size: 12px; color: var(--good); text-align: right; }
+  #streak b { font-size: 16px; }
 
-    @keyframes glitch {
-      0%,93%,100% { clip-path: none; transform: none; }
-      94% { clip-path: inset(38% 0 44% 0); transform: translate(-4px,0); }
-      95% { clip-path: inset(18% 0 62% 0); transform: translate(4px,0); }
-      96% { clip-path: inset(68% 0 12% 0); transform: translate(-2px,0); }
-      97% { clip-path: none; transform: none; }
-    }
+  /* Stats grid */
+  #stats-title, #quests-title, #log-title, #cal-title {
+    color: var(--gold); font-size: 13px; letter-spacing: 3px; margin-bottom: 10px;
+  }
+  #stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 10px; }
+  .stat-card {
+    background: var(--panel-2); border: 2px solid var(--border); border-radius: 5px;
+    padding: 10px 12px;
+  }
+  .stat-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .stat-name { font-size: 14px; }
+  .stat-icon { margin-right: 6px; }
+  .stat-lv { font-size: 12px; color: var(--dim); }
+  .stat-lv b { color: var(--gold); font-size: 14px; }
+  .bar-track { background: #05070f; border: 1px solid var(--border); border-radius: 3px; height: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg,#4a9dff,#5ee7a8); transition: width .4s ease; }
+  .stat-xp-label { font-size: 10px; color: var(--dim); margin-top: 4px; text-align: right; }
+  .stat-del { background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer; }
+  .stat-del:hover { color: var(--hp); }
 
-    /* HUD: VU meter */
-    #vu {
-      position: fixed; top: 24px; right: 24px; z-index: 20;
-      color: #0ff; text-align: right; user-select: none;
-    }
-    #vu .label { font-size: 10px; letter-spacing: 3px; opacity: 0.45; }
-    #vu-bars { display: flex; gap: 3px; margin-top: 8px; justify-content: flex-end; align-items: flex-end; height: 42px; }
-    .vu-bar { width: 5px; min-height: 2px; background: #003344; transition: height 0.05s; }
+  #add-stat-row { display:flex; gap:8px; margin-top:12px; flex-wrap: wrap; }
 
-    /* Controls bar */
-    #controls {
-      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; z-index: 20;
-    }
-    button {
-      background: rgba(0,255,255,0.04); border: 1px solid rgba(0,255,255,0.3);
-      color: rgba(0,255,255,0.7); padding: 9px 20px; cursor: pointer;
-      font-family: inherit; font-size: 11px; letter-spacing: 2px;
-      text-transform: uppercase; transition: all 0.2s; outline: none;
-    }
-    button:hover { border-color: #0ff; color: #0ff; box-shadow: 0 0 14px #0ff4; }
-    button.active { border-color: #ff00ff; color: #ff00ff; box-shadow: 0 0 12px #f0f4; }
-    button.rec-on  { border-color: #f44; color: #f44; box-shadow: 0 0 12px #f444; }
+  /* Quest list */
+  .quest-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--panel-2); border: 2px solid var(--border); border-radius: 5px;
+    padding: 8px 12px; margin-bottom: 8px;
+  }
+  .quest-row.done { opacity: 0.55; }
+  .quest-main { flex: 1; min-width: 0; }
+  .quest-name { font-size: 14px; }
+  .quest-meta { font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .btn {
+    font-family: inherit; cursor: pointer; border-radius: 4px;
+    border: 2px solid var(--border); background: var(--panel); color: var(--text);
+    padding: 8px 14px; font-size: 12px; letter-spacing: 1px; transition: all .15s;
+  }
+  .btn:hover { border-color: var(--gold); color: var(--gold); }
+  .btn.done-btn { border-color: var(--good); color: var(--good); }
+  .btn.small { padding: 5px 10px; font-size: 11px; }
+  .btn.danger:hover { border-color: var(--hp); color: var(--hp); }
+  .btn.primary { border-color: var(--gold); color: var(--gold); }
 
-    /* Drop hint */
-    #hint {
-      position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
-      font-size: 10px; letter-spacing: 2px; color: rgba(0,255,255,0.35);
-      pointer-events: none; white-space: nowrap;
-    }
+  input, select {
+    font-family: inherit; background: #05070f; color: var(--text);
+    border: 2px solid var(--border); border-radius: 4px; padding: 7px 9px; font-size: 12px;
+  }
+  input[type=number] { width: 70px; }
 
-    #file-input { display: none; }
-  </style>
+  #new-quest-form { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  #new-quest-form input[name=qname] { flex: 1; min-width: 140px; }
+
+  /* Message log (RPG dialogue box) */
+  #msg-box {
+    position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+    width: min(720px, 94vw);
+    background: var(--panel); border: 3px solid var(--gold); border-radius: 6px;
+    box-shadow: inset 0 0 0 2px #000, 0 4px 12px rgba(0,0,0,0.5);
+    padding: 10px 16px; min-height: 44px; z-index: 30;
+    font-size: 13px; line-height: 1.6;
+  }
+  #msg-box .line { opacity: 0; animation: fadein .3s forwards; }
+  @keyframes fadein { to { opacity: 1; } }
+
+  /* Calendar heatmap */
+  #cal-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 12px); gap: 3px; overflow-x: auto; padding-bottom: 4px; }
+  .cal-cell { width: 12px; height: 12px; border-radius: 2px; background: #202a4d; }
+  .cal-cell[data-lv="1"] { background: #2c5c4a; }
+  .cal-cell[data-lv="2"] { background: #2f8f66; }
+  .cal-cell[data-lv="3"] { background: #3fc987; }
+  .cal-cell[data-lv="4"] { background: #5ee7a8; }
+  .cal-cell.today { outline: 1px solid var(--gold); }
+
+  /* Level up modal */
+  #levelup-overlay {
+    position: fixed; inset: 0; background: rgba(4,6,16,0.85);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+  }
+  #levelup-overlay.show { display: flex; }
+  #levelup-card {
+    background: var(--panel); border: 3px solid var(--gold); border-radius: 8px;
+    padding: 30px 40px; text-align: center; box-shadow: 0 0 40px #ffcc4d55;
+    animation: pop .35s ease;
+  }
+  @keyframes pop { from { transform: scale(0.7); opacity:0; } to { transform: scale(1); opacity:1; } }
+  #levelup-card h2 { color: var(--gold); font-size: 24px; letter-spacing: 4px; margin-bottom: 14px; }
+  #levelup-card p { font-size: 15px; margin: 6px 0; }
+  #levelup-card .stat-up { color: var(--good); font-size: 18px; margin: 10px 0; }
+
+  #reset-row { text-align: right; }
+  #reset-row .btn { font-size: 10px; opacity: 0.5; }
+
+  ::placeholder { color: var(--dim); opacity: 0.7; }
+</style>
 </head>
 <body>
-  <div class="scanlines"></div>
 
-  <div id="hud">
-    <h1>NEON SYNC</h1>
-    <div class="sub">CG MV ENGINE / CYBERPUNK EDITION</div>
+<div id="app">
+
+  <div class="rpg-panel" id="header">
+    <div class="name-row">
+      <input id="hero-name" value="ゆうしゃ" maxlength="12">
+      <span class="lv-badge">冒険者 Lv. <b id="hero-lv">1</b></span>
+    </div>
+    <div id="streak">連続達成 <b id="streak-days">0</b> 日</div>
   </div>
 
-  <div id="vu">
-    <div class="label">AUDIO SYNC</div>
-    <div id="vu-bars"></div>
+  <div class="rpg-panel">
+    <div id="stats-title">◆ ステータス</div>
+    <div id="stats-grid"></div>
+    <div id="add-stat-row">
+      <input id="new-stat-name" placeholder="新しいステータス名（例: 語学）" maxlength="10">
+      <button class="btn primary" id="add-stat-btn">＋ ステータス追加</button>
+    </div>
   </div>
 
-  <div id="hint">音楽ファイルをドロップ、または [LOAD MUSIC] で読み込み</div>
-
-  <div id="controls">
-    <button id="btn-auto" onclick="toggleAuto()" class="active">◈ AUTO</button>
-    <button onclick="document.getElementById('file-input').click()">♫ LOAD MUSIC</button>
-    <button id="btn-rec" onclick="toggleRecord()">● REC</button>
+  <div class="rpg-panel">
+    <div id="quests-title">◆ 今日のクエスト</div>
+    <div id="quest-list"></div>
+    <div id="new-quest-form">
+      <input type="text" name="qname" placeholder="クエスト名（例: 筋トレ30分）" maxlength="20">
+      <select name="qcat" id="qcat-select"></select>
+      <input type="number" name="qxp" value="10" min="1" max="999">
+      <button class="btn primary" id="add-quest-btn">＋ クエスト登録</button>
+    </div>
   </div>
-  <input type="file" id="file-input" accept="audio/*" onchange="loadMusicFile(event)">
 
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  <div class="rpg-panel">
+    <div id="cal-title">◆ 冒険の記録</div>
+    <div id="cal-grid"></div>
+  </div>
+
+  <div id="reset-row">
+    <button class="btn danger" id="reset-btn">最初からやり直す</button>
+  </div>
+
+</div>
+
+<div id="msg-box"><div class="line" id="msg-line">冒険の書を読み込みました。</div></div>
+
+<div id="levelup-overlay">
+  <div id="levelup-card">
+    <h2>LEVEL UP!</h2>
+    <p id="levelup-cat"></p>
+    <p class="stat-up" id="levelup-detail"></p>
+    <button class="btn primary" id="levelup-close">つづける</button>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'lifequest_save_v1';
+
+const DEFAULT_STATE = () => ({
+  heroName: 'ゆうしゃ',
+  stats: [
+    { id: 'study',  name: '勉強',  icon: '📖', xp: 0 },
+    { id: 'train',  name: '筋トレ', icon: '💪', xp: 0 },
+    { id: 'meal',   name: '食事',  icon: '🍚', xp: 0 },
+    { id: 'work',   name: '作業',  icon: '🛠️', xp: 0 },
+  ],
+  quests: [
+    { id: uid(), name: '参考書を1章読む', catId: 'study', xp: 15 },
+    { id: uid(), name: '筋トレ30分',      catId: 'train', xp: 15 },
+    { id: uid(), name: '野菜を食べる',    catId: 'meal',  xp: 8  },
+    { id: uid(), name: 'タスクを1つ片付ける', catId: 'work', xp: 10 },
+  ],
+  // date string (YYYY-MM-DD) -> { questId: true, ... }
+  completions: {},
+  // date string -> total xp earned that day (for heatmap)
+  dailyXp: {},
+});
+
+function uid() { return Math.random().toString(36).slice(2, 10); }
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return DEFAULT_STATE();
+    const parsed = JSON.parse(raw);
+    if (!parsed.stats || !parsed.quests) return DEFAULT_STATE();
+    return parsed;
+  } catch (e) { return DEFAULT_STATE(); }
+}
+function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+let state = loadState();
+
+// ---- Leveling formula (DQ-ish curve) ----
+function xpToNext(level) { return Math.round(15 + level * 10 + Math.pow(level, 1.6)); }
+function levelInfo(totalXp) {
+  let level = 1, remaining = totalXp;
+  while (remaining >= xpToNext(level)) {
+    remaining -= xpToNext(level);
+    level++;
+  }
+  return { level, into: remaining, need: xpToNext(level) };
+}
+
+// ---- Message log ----
+let msgQueue = [];
+let msgTimer = null;
+function pushMessage(text) {
+  msgQueue.push(text);
+  if (!msgTimer) drainMessages();
+}
+function drainMessages() {
+  const el = document.getElementById('msg-line');
+  if (msgQueue.length === 0) { msgTimer = null; return; }
+  const text = msgQueue.shift();
+  el.textContent = text;
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = '';
+  msgTimer = setTimeout(drainMessages, 1700);
+}
+
+// ---- Level up modal ----
+function showLevelUp(catName, newLevel) {
+  document.getElementById('levelup-cat').textContent = `『${catName}』が Lv.${newLevel} になった！`;
+  document.getElementById('levelup-detail').textContent = 'つぎのステップへ すすもう！';
+  document.getElementById('levelup-overlay').classList.add('show');
+}
+document.getElementById('levelup-close').addEventListener('click', () => {
+  document.getElementById('levelup-overlay').classList.remove('show');
+});
+
+// ---- Rendering ----
+function render() {
+  document.getElementById('hero-name').value = state.heroName;
+
+  // overall hero level = sum of stat levels
+  let heroLevelSum = 0;
+  const statsGrid = document.getElementById('stats-grid');
+  statsGrid.innerHTML = '';
+  state.stats.forEach(stat => {
+    const info = levelInfo(stat.xp);
+    heroLevelSum += info.level;
+    const pct = Math.min(100, Math.round((info.into / info.need) * 100));
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.innerHTML = `
+      <div class="stat-card-top">
+        <span class="stat-name"><span class="stat-icon">${stat.icon}</span>${escapeHtml(stat.name)}</span>
+        <span class="stat-lv">Lv. <b>${info.level}</b></span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="stat-xp-label">${info.into} / ${info.need} XP
+        <button class="stat-del" data-id="${stat.id}" title="削除">✕</button>
+      </div>
+    `;
+    statsGrid.appendChild(card);
+  });
+  document.getElementById('hero-lv').textContent = heroLevelSum;
+
+  statsGrid.querySelectorAll('.stat-del').forEach(btn => {
+    btn.addEventListener('click', () => deleteStat(btn.dataset.id));
+  });
+
+  // quest category select
+  const sel = document.getElementById('qcat-select');
+  sel.innerHTML = state.stats.map(s => `<option value="${s.id}">${s.icon} ${escapeHtml(s.name)}</option>`).join('');
+
+  // quest list
+  const today = todayStr();
+  const doneToday = state.completions[today] || {};
+  const list = document.getElementById('quest-list');
+  list.innerHTML = '';
+  state.quests.forEach(q => {
+    const cat = state.stats.find(s => s.id === q.catId);
+    const isDone = !!doneToday[q.id];
+    const row = document.createElement('div');
+    row.className = 'quest-row' + (isDone ? ' done' : '');
+    row.innerHTML = `
+      <div class="quest-main">
+        <div class="quest-name">${cat ? cat.icon : '❔'} ${escapeHtml(q.name)}</div>
+        <div class="quest-meta">${cat ? escapeHtml(cat.name) : '（カテゴリ削除済み）'} ・ XP +${q.xp}</div>
+      </div>
+      <button class="btn small danger" data-del="${q.id}">削除</button>
+      <button class="btn small ${isDone ? 'done-btn' : ''}" data-toggle="${q.id}">${isDone ? '達成済み ✓' : '達成する'}</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => toggleQuest(btn.dataset.toggle));
+  });
+  list.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => deleteQuest(btn.dataset.del));
+  });
+
+  renderStreak();
+  renderCalendar();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderStreak() {
+  let streak = 0;
+  let d = new Date();
+  // if today has no xp yet, still allow counting from yesterday backward,
+  // but if today has activity, count today too.
+  const today = todayStr();
+  if ((state.dailyXp[today] || 0) > 0) {
+    streak = 1;
+    d.setDate(d.getDate() - 1);
+  } else {
+    d.setDate(d.getDate() - 1);
+  }
+  while (true) {
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if ((state.dailyXp[key] || 0) > 0) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else break;
+  }
+  document.getElementById('streak-days').textContent = streak;
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  const days = 84; // 12 weeks
+  const today = new Date();
+  const cells = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const xp = state.dailyXp[key] || 0;
+    let lv = 0;
+    if (xp > 0) lv = 1;
+    if (xp >= 15) lv = 2;
+    if (xp >= 30) lv = 3;
+    if (xp >= 50) lv = 4;
+    cells.push({ key, lv, isToday: key === todayStr() });
+  }
+  cells.forEach(c => {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (c.isToday ? ' today' : '');
+    cell.dataset.lv = c.lv;
+    cell.title = `${c.key}`;
+    grid.appendChild(cell);
+  });
+}
+
+// ---- Actions ----
+function toggleQuest(questId) {
+  const q = state.quests.find(x => x.id === questId);
+  if (!q) return;
+  const cat = state.stats.find(s => s.id === q.catId);
+  const today = todayStr();
+  if (!state.completions[today]) state.completions[today] = {};
+  const doneToday = state.completions[today];
+
+  if (doneToday[questId]) {
+    // undo
+    delete doneToday[questId];
+    if (cat) cat.xp = Math.max(0, cat.xp - q.xp);
+    state.dailyXp[today] = Math.max(0, (state.dailyXp[today] || 0) - q.xp);
+    pushMessage(`『${q.name}』の達成を取り消した。`);
+    saveState();
+    render();
+    return;
+  }
+
+  const beforeLevel = cat ? levelInfo(cat.xp).level : 0;
+  doneToday[questId] = true;
+  if (cat) cat.xp += q.xp;
+  state.dailyXp[today] = (state.dailyXp[today] || 0) + q.xp;
+  saveState();
+
+  pushMessage(`『${q.name}』を達成！ ${cat ? cat.name : ''}の経験値 +${q.xp}`);
+
+  if (cat) {
+    const afterLevel = levelInfo(cat.xp).level;
+    if (afterLevel > beforeLevel) {
+      setTimeout(() => showLevelUp(cat.name, afterLevel), 400);
     }
   }
-  </script>
+  render();
+}
+
+function deleteQuest(questId) {
+  state.quests = state.quests.filter(q => q.id !== questId);
+  saveState();
+  render();
+}
+
+function deleteStat(statId) {
+  const stat = state.stats.find(s => s.id === statId);
+  if (!stat) return;
+  if (!confirm(`ステータス「${stat.name}」を削除しますか？（このステータスに紐づくクエストは残りますが経験値は入らなくなります）`)) return;
+  state.stats = state.stats.filter(s => s.id !== statId);
+  saveState();
+  render();
+}
+
+document.getElementById('add-stat-btn').addEventListener('click', () => {
+  const input = document.getElementById('new-stat-name');
+  const name = input.value.trim();
+  if (!name) return;
+  state.stats.push({ id: uid(), name, icon: '⭐', xp: 0 });
+  input.value = '';
+  saveState();
+  render();
+});
+document.getElementById('new-stat-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('add-stat-btn').click();
+});
+
+document.getElementById('add-quest-btn').addEventListener('click', () => {
+  const form = document.getElementById('new-quest-form');
+  const name = form.querySelector('[name=qname]').value.trim();
+  const catId = form.querySelector('[name=qcat]').value;
+  const xp = Math.max(1, parseInt(form.querySelector('[name=qxp]').value, 10) || 10);
+  if (!name || !catId) return;
+  state.quests.push({ id: uid(), name, catId, xp });
+  form.querySelector('[name=qname]').value = '';
+  saveState();
+  render();
+});
+
+document.getElementById('hero-name').addEventListener('input', e => {
+  state.heroName = e.target.value;
+  saveState();
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!confirm('本当に最初からやり直しますか？すべてのデータが削除されます。')) return;
+  state = DEFAULT_STATE();
+  saveState();
+  render();
+  pushMessage('冒険をはじめからやりなおした。');
+});
+
+render();
+</script>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-    import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
-    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-
-    // ── RENDERER ──────────────────────────────────────────────────────────────
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.9;
-    document.body.prepend(renderer.domElement);
-
-    // ── SCENE / CAMERA ────────────────────────────────────────────────────────
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000008);
-    scene.fog = new THREE.FogExp2(0x000008, 0.038);
-
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 3.2, 9);
-    camera.lookAt(0, 1.8, 0);
-
-    // ── POST PROCESSING ───────────────────────────────────────────────────────
-    const composer = new EffectComposer(renderer);
-    composer.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight), 1.8, 0.5, 0.72
-    );
-    composer.addPass(bloom);
-
-    // ── LIGHTS ────────────────────────────────────────────────────────────────
-    scene.add(new THREE.AmbientLight(0x050514, 4));
-
-    const cyanLight    = new THREE.PointLight(0x00ccff, 5, 22);
-    cyanLight.position.set(-4, 5, 2);
-    scene.add(cyanLight);
-
-    const magentaLight = new THREE.PointLight(0xff0088, 4, 20);
-    magentaLight.position.set(4, 4, -3);
-    scene.add(magentaLight);
-
-    const rimLight = new THREE.PointLight(0x0033ff, 3, 14);
-    rimLight.position.set(0, 1, -5);
-    scene.add(rimLight);
-
-    // ── NEON GRID ─────────────────────────────────────────────────────────────
-    function makeGrid() {
-      const g = new THREE.Group();
-      const S = 22, N = 26;
-
-      for (let i = 0; i <= N; i++) {
-        const z = -S + (i / N) * S * 2;
-        const a = 1 - Math.abs(i / N - 0.5) * 1.8;
-        if (a <= 0) continue;
-        const geo = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(-S, 0, z), new THREE.Vector3(S, 0, z)
-        ]);
-        g.add(new THREE.Line(geo, new THREE.LineBasicMaterial({
-          color: i % 5 === 0 ? 0x006688 : 0x002233,
-          transparent: true, opacity: a * 0.85
-        })));
-      }
-
-      for (let i = 0; i <= N; i++) {
-        const x = -S + (i / N) * S * 2;
-        const a = 1 - Math.abs(i / N - 0.5) * 1.5;
-        if (a <= 0) continue;
-        const geo = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(x, 0, S), new THREE.Vector3(x, 0, -S)
-        ]);
-        g.add(new THREE.Line(geo, new THREE.LineBasicMaterial({
-          color: i % 5 === 0 ? 0x006688 : 0x002233,
-          transparent: true, opacity: a * 0.65
-        })));
-      }
-
-      // Horizon accent line
-      const hGeo = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(-S, 0, -S), new THREE.Vector3(S, 0, -S)
-      ]);
-      g.add(new THREE.Line(hGeo, new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 })));
-
-      return g;
-    }
-    scene.add(makeGrid());
-
-    // ── SKELETON CHARACTER ────────────────────────────────────────────────────
-    function makeCharacter() {
-      const g = new THREE.Group();
-
-      // Joint positions (Y=0 is floor)
-      const J = {
-        head:  [ 0,    3.85, 0   ],
-        neck:  [ 0,    3.3,  0   ],
-        lSho:  [-0.58, 3.1,  0   ],
-        rSho:  [ 0.58, 3.1,  0   ],
-        lElb:  [-0.98, 2.5,  0.1 ],
-        rElb:  [ 0.98, 2.5,  0.1 ],
-        lWri:  [-1.05, 1.82, 0.16],
-        rWri:  [ 1.05, 1.82, 0.16],
-        spine: [ 0,    2.8,  0   ],
-        hip:   [ 0,    2.25, 0   ],
-        lHip:  [-0.28, 2.05, 0   ],
-        rHip:  [ 0.28, 2.05, 0   ],
-        lKne:  [-0.32, 1.25, 0.05],
-        rKne:  [ 0.32, 1.25, 0.05],
-        lAnk:  [-0.3,  0.28, 0.1 ],
-        rAnk:  [ 0.3,  0.28, 0.1 ],
-      };
-
-      const BONES = [
-        ['head','neck'], ['neck','spine'], ['spine','hip'],
-        ['neck','lSho'], ['neck','rSho'],
-        ['lSho','lElb'], ['rSho','rElb'],
-        ['lElb','lWri'], ['rElb','rWri'],
-        ['hip','lHip'],  ['hip','rHip'],
-        ['lHip','lKne'], ['rHip','rKne'],
-        ['lKne','lAnk'], ['rKne','rAnk'],
-      ];
-
-      const bMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.9 });
-
-      BONES.forEach(([a, b]) => {
-        const geo = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(...J[a]), new THREE.Vector3(...J[b])
-        ]);
-        g.add(new THREE.Line(geo, bMat.clone()));
-      });
-
-      // Joint spheres
-      const jGeo = new THREE.SphereGeometry(0.04, 8, 6);
-      const jMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-      Object.values(J).forEach(pos => {
-        const m = new THREE.Mesh(jGeo, jMat.clone());
-        m.position.set(...pos);
-        g.add(m);
-      });
-
-      // Head: glowing wireframe icosahedron
-      const headGeo = new THREE.IcosahedronGeometry(0.22, 1);
-      const headMesh = new THREE.Mesh(headGeo, new THREE.MeshBasicMaterial({
-        color: 0x00ffff, wireframe: true
-      }));
-      headMesh.position.set(...J.head);
-      g.add(headMesh);
-      g._head = headMesh;
-
-      // Chest outline ellipse
-      const cPts = [];
-      for (let i = 0; i <= 48; i++) {
-        const a = (i / 48) * Math.PI * 2;
-        cPts.push(new THREE.Vector3(Math.cos(a) * 0.38, 2.7 + Math.sin(a) * 0.28, 0));
-      }
-      g.add(new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(cPts),
-        new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 })
-      ));
-
-      // Hip outline
-      const hPts = [];
-      for (let i = 0; i <= 48; i++) {
-        const a = (i / 48) * Math.PI * 2;
-        hPts.push(new THREE.Vector3(Math.cos(a) * 0.26, 2.25 + Math.sin(a) * 0.12, 0));
-      }
-      g.add(new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(hPts),
-        new THREE.LineBasicMaterial({ color: 0x0088ff, transparent: true, opacity: 0.5 })
-      ));
-
-      return g;
-    }
-
-    const character = makeCharacter();
-    scene.add(character);
-
-    // ── ORBIT RINGS ───────────────────────────────────────────────────────────
-    function makeRing(radius, tubeR, color, tiltX, tiltZ) {
-      const geo = new THREE.TorusGeometry(radius, tubeR, 4, 80);
-      const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35 });
-      const m = new THREE.Mesh(geo, mat);
-      m.position.set(0, 2.0, 0);
-      m.rotation.x = tiltX;
-      m.rotation.z = tiltZ;
-      return m;
-    }
-
-    const ring1 = makeRing(1.6, 0.008, 0x0044ff, Math.PI / 5, 0.3);
-    const ring2 = makeRing(2.0, 0.006, 0xff00aa, Math.PI / 3, -0.4);
-    const ring3 = makeRing(1.3, 0.005, 0x00ffaa, Math.PI / 2.2, 0.8);
-    scene.add(ring1, ring2, ring3);
-
-    // ── SCAN PLANE (vertical sweep) ───────────────────────────────────────────
-    const scanGeo = new THREE.PlaneGeometry(2.8, 0.025);
-    const scanMat = new THREE.MeshBasicMaterial({
-      color: 0x00ffff, transparent: true, opacity: 0.5,
-      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
-    });
-    const scanPlane = new THREE.Mesh(scanGeo, scanMat);
-    scanPlane.rotation.x = -Math.PI / 2;
-    scene.add(scanPlane);
-
-    // ── PARTICLES ─────────────────────────────────────────────────────────────
-    const PC = 1800;
-    const pPos = new Float32Array(PC * 3);
-    const pVel = new Float32Array(PC * 3);
-    const pCol = new Float32Array(PC * 3);
-
-    for (let i = 0; i < PC; i++) {
-      pPos[i*3]   = (Math.random() - 0.5) * 18;
-      pPos[i*3+1] = Math.random() * 9;
-      pPos[i*3+2] = (Math.random() - 0.5) * 18;
-      pVel[i*3]   = (Math.random() - 0.5) * 0.007;
-      pVel[i*3+1] = (Math.random() - 0.5) * 0.004 + 0.001;
-      pVel[i*3+2] = (Math.random() - 0.5) * 0.007;
-
-      const t = Math.random();
-      pCol[i*3]   = t > 0.65 ? 1 : 0;
-      pCol[i*3+1] = t < 0.35 ? 1 : (t > 0.65 ? 0 : t * 0.8);
-      pCol[i*3+2] = 1;
-    }
-
-    const pGeo = new THREE.BufferGeometry();
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-    pGeo.setAttribute('color',    new THREE.BufferAttribute(pCol, 3));
-    scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({
-      size: 0.07, vertexColors: true,
-      transparent: true, opacity: 0.8,
-      blending: THREE.AdditiveBlending, depthWrite: false
-    })));
-
-    // Stars
-    const SC = 2500;
-    const sPos = new Float32Array(SC * 3);
-    for (let i = 0; i < SC; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const b = Math.acos(2 * Math.random() - 1);
-      const r = 45 + Math.random() * 15;
-      sPos[i*3]   = r * Math.sin(b) * Math.cos(a);
-      sPos[i*3+1] = r * Math.sin(b) * Math.sin(a);
-      sPos[i*3+2] = r * Math.cos(b);
-    }
-    const sGeo = new THREE.BufferGeometry();
-    sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
-    scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({
-      color: 0xaaccff, size: 0.12, transparent: true, opacity: 0.45
-    })));
-
-    // ── VU METER UI ───────────────────────────────────────────────────────────
-    const VU_N = 16;
-    const vuBars = [];
-    const vuContainer = document.getElementById('vu-bars');
-    for (let i = 0; i < VU_N; i++) {
-      const bar = document.createElement('div');
-      bar.className = 'vu-bar';
-      bar.style.height = '2px';
-      vuContainer.appendChild(bar);
-      vuBars.push(bar);
-    }
-
-    // ── AUDIO ─────────────────────────────────────────────────────────────────
-    let audioCtx, analyser, fftData, audioSrc;
-
-    window.loadMusicFile = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser  = audioCtx.createAnalyser();
-        analyser.fftSize = 512;
-        fftData   = new Uint8Array(analyser.frequencyBinCount);
-        analyser.connect(audioCtx.destination);
-      }
-
-      if (audioSrc) { try { audioSrc.stop(); } catch (_) {} audioSrc.disconnect(); }
-
-      const buf  = await audioCtx.decodeAudioData(await file.arrayBuffer());
-      audioSrc = audioCtx.createBufferSource();
-      audioSrc.buffer = buf;
-      audioSrc.loop   = true;
-      audioSrc.connect(analyser);
-      audioSrc.start();
-
-      document.getElementById('hint').textContent = `♪  ${file.name}`;
-      setAutoMode(false);
-    };
-
-    document.addEventListener('dragover', e => e.preventDefault());
-    document.addEventListener('drop', async e => {
-      e.preventDefault();
-      const f = e.dataTransfer.files[0];
-      if (f?.type.startsWith('audio/')) loadMusicFile({ target: { files: [f] } });
-    });
-
-    // ── AUTO MODE ─────────────────────────────────────────────────────────────
-    let autoMode = true;
-    let autoT    = 0;
-
-    function setAutoMode(on) {
-      autoMode = on;
-      document.getElementById('btn-auto').classList.toggle('active', on);
-    }
-    window.toggleAuto = () => setAutoMode(!autoMode);
-
-    function avg(arr, s, e) {
-      let sum = 0;
-      for (let i = s; i < e; i++) sum += arr[i];
-      return sum / (e - s);
-    }
-
-    function getLevel() {
-      if (analyser && fftData) {
-        analyser.getByteFrequencyData(fftData);
-        const bins = analyser.frequencyBinCount;
-        const bass = avg(fftData, 0,                    Math.floor(bins * 0.05)) / 255;
-        const mid  = avg(fftData, Math.floor(bins*0.05), Math.floor(bins * 0.25)) / 255;
-        const high = avg(fftData, Math.floor(bins*0.25), Math.floor(bins * 0.60)) / 255;
-        for (let i = 0; i < VU_N; i++) {
-          const v = fftData[Math.floor(i * bins / VU_N)] / 255;
-          vuBars[i].style.height = (v * 40 + 2) + 'px';
-          vuBars[i].style.background = v > 0.7 ? '#ff00ff' : v > 0.35 ? '#00bbff' : '#003344';
-        }
-        return { bass, mid, high };
-      }
-
-      if (autoMode) {
-        autoT += 0.016;
-        const bass = Math.pow(Math.max(0, Math.sin(autoT * 2.2)), 4) * 0.85;
-        const mid  = (Math.sin(autoT * 3.8 + 0.6) * 0.5 + 0.5) * 0.55;
-        const high = (Math.sin(autoT * 6.3 + 1.3) * 0.5 + 0.5) * 0.38;
-        for (let i = 0; i < VU_N; i++) {
-          const v = (Math.sin(autoT * (i * 0.8 + 1.5)) * 0.5 + 0.5) * 0.75;
-          vuBars[i].style.height = (v * 36 + 2) + 'px';
-          vuBars[i].style.background = v > 0.62 ? '#ff00ff' : v > 0.3 ? '#00bbff' : '#003344';
-        }
-        return { bass, mid, high };
-      }
-
-      return { bass: 0, mid: 0, high: 0 };
-    }
-
-    // ── RECORDING ─────────────────────────────────────────────────────────────
-    let recorder, recChunks = [], recording = false;
-
-    window.toggleRecord = () => {
-      const btn = document.getElementById('btn-rec');
-      if (!recording) {
-        recChunks = [];
-        const stream = renderer.domElement.captureStream(30);
-        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-          ? 'video/webm;codecs=vp9' : 'video/webm';
-        recorder = new MediaRecorder(stream, { mimeType });
-        recorder.ondataavailable = e => recChunks.push(e.data);
-        recorder.onstop = () => {
-          const blob = new Blob(recChunks, { type: 'video/webm' });
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = 'neon-sync-mv.webm';
-          a.click();
-        };
-        recorder.start();
-        recording = true;
-        btn.textContent = '■ STOP REC';
-        btn.classList.add('rec-on');
-      } else {
-        recorder.stop();
-        recording = false;
-        btn.textContent = '● REC';
-        btn.classList.remove('rec-on');
-      }
-    };
-
-    // ── ANIMATION LOOP ────────────────────────────────────────────────────────
-    let t = 0, camAngle = 0;
-
-    function animate() {
-      requestAnimationFrame(animate);
-      t += 0.01;
-
-      const { bass, mid, high } = getLevel();
-
-      // Camera slow orbit + breathing
-      camAngle += 0.004;
-      const camR = 9 - bass * 1.4;
-      camera.position.x = Math.sin(camAngle) * camR;
-      camera.position.z = Math.cos(camAngle) * camR;
-      camera.position.y = 3.2 + Math.sin(t * 0.38) * 0.35 + bass * 0.25;
-      camera.lookAt(0, 1.8, 0);
-
-      // Camera shake on heavy bass
-      if (bass > 0.55) {
-        camera.position.x += (Math.random() - 0.5) * bass * 0.09;
-        camera.position.y += (Math.random() - 0.5) * bass * 0.07;
-      }
-
-      // Character float & breathe
-      character.position.y = Math.sin(t * 1.15) * 0.045;
-      character.rotation.y = Math.sin(t * 0.28) * 0.09;
-      if (character._head) {
-        character._head.rotation.y += 0.012;
-        character._head.rotation.x = Math.sin(t * 0.65) * 0.12;
-      }
-
-      // Bone brightness with audio mid
-      character.traverse(c => {
-        if (c.isLine && c.material) c.material.opacity = 0.65 + mid * 0.6;
-        if (c.isMesh && c.material?.isMeshBasicMaterial && !c.material.wireframe)
-          c.material.color.setHSL(0.53 + mid * 0.08, 1, 0.48 + high * 0.28);
-      });
-
-      // Orbit rings
-      ring1.rotation.y += 0.008 + bass * 0.03;
-      ring2.rotation.y -= 0.005 + mid * 0.02;
-      ring3.rotation.y += 0.011 + high * 0.04;
-      ring1.scale.setScalar(1 + bass * 0.08);
-
-      // Vertical scan sweep
-      scanPlane.position.set(0, ((t * 0.55) % 4.2), 0);
-      scanMat.opacity = 0.3 + bass * 0.55;
-
-      // Bloom pulse
-      bloom.strength = 1.6 + bass * 2.6 + mid * 0.7;
-
-      // Lights throb
-      cyanLight.intensity    = 5 + bass * 7;
-      magentaLight.intensity = 4 + mid * 6;
-      cyanLight.position.x    = Math.sin(t * 0.58) * 5 - 2;
-      magentaLight.position.x = Math.cos(t * 0.47) * 5 + 2;
-
-      // Particles drift
-      const pos = pGeo.attributes.position.array;
-      for (let i = 0; i < PC; i++) {
-        pos[i*3]   += pVel[i*3]   * (1 + high * 4.5);
-        pos[i*3+1] += pVel[i*3+1] + Math.sin(t + i * 0.07) * 0.0006;
-        pos[i*3+2] += pVel[i*3+2] * (1 + high * 4.5);
-        if (pos[i*3]   >  9) pos[i*3]   = -9;
-        if (pos[i*3]   < -9) pos[i*3]   =  9;
-        if (pos[i*3+1] >  9) pos[i*3+1] =  0.1;
-        if (pos[i*3+1] <  0) pos[i*3+1] =  9;
-        if (pos[i*3+2] >  9) pos[i*3+2] = -9;
-        if (pos[i*3+2] < -9) pos[i*3+2] =  9;
-      }
-      pGeo.attributes.position.needsUpdate = true;
-
-      composer.render();
-    }
-
-    animate();
-
-    // Resize
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      composer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-  </script>
 </body>
 </html>
