@@ -1,0 +1,17 @@
+# Unityが自動生成するフォルダ(このテンプレートをUnityプロジェクトのルートとして使う場合)
+/Library/
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+/MemoryCaptures/
+*.csproj
+*.sln
+*.user
+*.unityproj
+*.userprefs
+*.pidb
+*.suo
+*.tmp
